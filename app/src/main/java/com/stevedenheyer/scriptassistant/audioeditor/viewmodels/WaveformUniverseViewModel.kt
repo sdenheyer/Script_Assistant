@@ -1,0 +1,141 @@
+package com.stevedenheyer.scriptassistant.audioeditor.viewmodels
+
+import android.util.Log
+import androidx.lifecycle.*
+import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
+import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import com.stevedenheyer.scriptassistant.common.domain.repositories.WaveformRepository
+import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
+import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetAudioDetails
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetSettings
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetWaveformMapFlow
+import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
+import com.stevedenheyer.scriptassistant.common.domain.repositories.SentencesRepository
+import com.stevedenheyer.scriptassistant.utils.EventHandler
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import javax.inject.Inject
+import kotlin.math.roundToInt
+
+data class AudioFileTabUi(
+    val id: Long,
+    val name: String,
+)
+
+data class SentencesCollectionUi(
+    val sentences:Array<Sentence> = emptyArray(),
+    val threshold:Int = 0,
+    val pause:Int = 0,
+    )
+
+@HiltViewModel
+class WaveformUniverseViewModel @Inject constructor(
+    private val state: SavedStateHandle,
+    private val getSettings: GetSettings,
+    private val sentencesRepository: SentencesRepository,
+    private val getAudioDetails: GetAudioDetails,
+    private val getWaveformMapFlow: GetWaveformMapFlow,
+    private val eventHandler: EventHandler<EditorEvent>,
+) : ViewModel() {
+
+    private val projectId = state.get<Long>("projectId")!!
+
+    private val currentAudioId = MutableStateFlow(0L)
+
+    val currentAudioIndex = currentAudioId.map {id ->
+        var index = 0
+        audioFileTabUiState.value.forEachIndexed { i, tab ->
+            if (tab.id == id) {
+                index = i
+            }
+        }
+        index }
+
+    private val settingsMap = MutableStateFlow(HashMap<Long, Settings>())
+
+    val threshold = sentencesRepository.getThreshold()
+
+    val pause = sentencesRepository.getPause()
+
+    private val audioDetails = getAudioDetails(projectId)
+
+    val audioFileTabUiState = audioDetails.map { details ->
+        val tabs = ArrayList<AudioFileTabUi>()
+        details.forEach {
+            tabs.add(AudioFileTabUi(it.key, it.value.name))
+        }
+        tabs.toList()
+    }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
+
+    val sentencesMap = LinkedHashMap<Long, SentencesCollection>()
+
+    private val waveformMap = getWaveformMapFlow(projectId)
+
+    val waveform = combine(currentAudioId, waveformMap) { id, map ->
+        val waveform = map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+        sentencesRepository.setWaveform(waveform)
+        waveform
+    }
+
+    val sentences =
+        sentencesRepository.getSentencesCollectionFlow().transform { sentencesCollection ->
+            val id = sentencesCollection.id
+            sentencesMap[id] = sentencesCollection
+            emit(sentencesMap)
+        }.asLiveData()
+
+    init {
+     /*   viewModelScope.launch {
+            audioDetails.collect {
+                Log.d("VM", "Sending files...")
+                val fileList = it.mapValues { it.value.audioFile }
+                waveformRepository.generateWaveforms(fileList)
+            }
+        }*/
+
+        viewModelScope.launch {
+            getSettings(projectId).collect {
+                if (!settingsMap.value.equals(it)) {
+                    settingsMap.value.putAll(it)
+                }
+            }
+        }
+    }
+
+    fun setCurrentAudioId(key: Long) {
+        if (key != currentAudioId.value) {
+            currentAudioId.value = key
+        }
+    }
+
+    fun setThreshold(value: Float) {
+        val threshold = value.roundToInt()
+        Log.d("SVM", "Received update to id ${currentAudioId.value}")
+        if ((value > 0) && settingsMap.value.containsKey(currentAudioId.value)) {
+            settingsMap.update { map ->
+                Log.d("SVM", "updating value $value")
+                map[currentAudioId.value] =
+                    map[currentAudioId.value]!!.copy(threshold = threshold)
+                map
+            }
+            sentencesRepository.setThreshold(value)
+        }
+    }
+
+    fun setPause(value: Float) {
+        val pause = value.roundToInt()
+        if ((value > 0) && settingsMap.value.containsKey(currentAudioId.value)) {
+            settingsMap.value[currentAudioId.value] =
+                settingsMap.value[currentAudioId.value]!!.copy(pause = pause)
+            sentencesRepository.setPause(value)
+        }
+    }
+
+    fun onStopTrackingTouch() {
+        eventHandler.onEvent(EditorEvent.RequestSentenceUpdate(false))
+    }
+
+}

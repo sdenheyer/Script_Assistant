@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    android:label="file_browser"
+    app:startDestination="@id/introFragment">
+
+    <fragment
+        android:id="@+id/introFragment"
+        android:name="com.stevedenheyer.scriptassistant.projectbrowser.ProjectBrowserFragment"
+        android:label="intro_fragment">
+        <action
+            android:id="@+id/action_introFragment_to_audioEditorFragment"
+            app:destination="@id/audioEditorFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/audioEditorFragment"
+        android:name="com.stevedenheyer.scriptassistant.audioeditor.presentation.AudioEditorFragment"
+        android:label="audio_editor_fragment"
+        tools:layout="@layout/audio_editor_fragment">
+        <argument
+            android:name="projectId"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_audioEditorFragment_to_fileBrowserFragment"
+            app:destination="@id/fileBrowserFragment" />
+        <action
+            android:id="@+id/action_audioEditorFragment_to_scriptEditorFragment"
+            app:destination="@+id/scriptEditorFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fileBrowserFragment"
+        android:name="com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserFragment"
+        android:label="file_browser_fragment"
+        tools:layout="@layout/file_browser_fragment" >
+        <argument
+            android:name="projectId"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_fileBrowserFragment_to_audioEditorFragment"
+            app:destination="@id/audioEditorFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/scriptEditorFragment"
+        android:name="com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorFragment"
+        android:label="script_editor_fragment">
+        <argument
+            android:name="scriptId"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_scriptEditorFragment_to_audioEditorFragment"
+            app:destination="@id/audioEditorFragment" />
+    </fragment>
+
+</navigation>

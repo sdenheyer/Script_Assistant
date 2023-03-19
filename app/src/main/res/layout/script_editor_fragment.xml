@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".scripteditor.ScriptEditorFragment">
+
+    <data>
+        <variable
+            name="scriptModel"
+            type="com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/lines"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        android:updateScript="@{scriptModel.scriptLines}"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/editor"
+        android:onItemStateChanged="@{(key, selected) -> scriptModel.onItemSelected(key, selected)}"
+        />
+
+        <EditText
+            android:id="@+id/editor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/lines"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:singleLine="true"
+            android:inputType="text"
+            android:text="@{scriptModel.lineEditor}"
+            android:onTextChanged="@{scriptModel::editTextWatcher}"
+            android:onEditorAction="@{scriptModel::onEditorAction}"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
