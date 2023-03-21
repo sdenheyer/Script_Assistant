@@ -5,6 +5,7 @@ import com.stevedenheyer.scriptassistant.common.data.room.model.SentenceDB
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import kotlin.math.roundToInt
 
 @Entity
 data class AudioDetailsDB(
@@ -20,8 +21,8 @@ data class AudioDetailsDB(
             AudioDetailsDB(
                 projectId,
                 details.audioOwnerId,
-                details.settings.threshold,
-                details.settings.pause,
+                details.settings.threshold.roundToInt(),
+                details.settings.pause.roundToInt(),
                 details.sentences.map {
                     SentenceDB.fromDomain(it)
                 }.toTypedArray(),
@@ -29,7 +30,7 @@ data class AudioDetailsDB(
             )
     }
 
-    fun toDomainSettings() = Settings(threshold, pause)
+    fun toDomainSettings() = Settings(threshold.toFloat(), pause.toFloat())
 
     fun toDomainSentences(): Array<Sentence> {
         return sentenceDBS.map {

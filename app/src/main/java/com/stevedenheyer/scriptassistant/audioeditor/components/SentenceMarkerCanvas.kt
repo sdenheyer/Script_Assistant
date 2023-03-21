@@ -28,7 +28,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SentenceMarkerCanvas(modifier: Modifier, sentences:Array<Sentence>, updateSentence: (Int, Sentence) -> Unit, dragStopped: () -> Unit) {
-    Log.d("MRKR", "Composing...")
+  //  Log.d("MRKR", "Composing...")
     LazyRow(modifier.width((sentences.last().range.upper * 2).dp)) {
         itemsIndexed(items = sentences) { index, sentence ->
                 MarkIn(modifier = Modifier,

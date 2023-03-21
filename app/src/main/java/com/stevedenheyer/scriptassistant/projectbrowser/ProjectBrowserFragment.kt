@@ -24,6 +24,7 @@ import androidx.navigation.fragment.findNavController
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.compose.ui.graphics.Color
+import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope

@@ -19,7 +19,7 @@ fun WaveformCanvas(modifier: Modifier, waveform: Waveform) {
         val height = size.height / 2
         val centerY = size.center.y
 
-        Log.d("CVS", "Canvas size: $height ${size.width}")
+        //Log.d("CVS", "Canvas size: $height ${size.width}")
 
         waveform.data.forEachIndexed { index, byte ->
             val x = (index / 2).toFloat()

@@ -1,19 +1,18 @@
 package com.stevedenheyer.scriptassistant.audioeditor.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.*
+ import android.util.Log
+ import android.util.Range
+ import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
-import com.stevedenheyer.scriptassistant.common.domain.repositories.WaveformRepository
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
+ import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetAudioDetails
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetSettings
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetWaveformMapFlow
 import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
-import com.stevedenheyer.scriptassistant.common.domain.repositories.SentencesRepository
-import com.stevedenheyer.scriptassistant.utils.EventHandler
+ import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -25,17 +24,10 @@ data class AudioFileTabUi(
     val name: String,
 )
 
-data class SentencesCollectionUi(
-    val sentences:Array<Sentence> = emptyArray(),
-    val threshold:Int = 0,
-    val pause:Int = 0,
-    )
-
 @HiltViewModel
 class WaveformUniverseViewModel @Inject constructor(
     private val state: SavedStateHandle,
     private val getSettings: GetSettings,
-    private val sentencesRepository: SentencesRepository,
     private val getAudioDetails: GetAudioDetails,
     private val getWaveformMapFlow: GetWaveformMapFlow,
     private val eventHandler: EventHandler<EditorEvent>,
@@ -54,11 +46,15 @@ class WaveformUniverseViewModel @Inject constructor(
         }
         index }
 
-    private val settingsMap = MutableStateFlow(HashMap<Long, Settings>())
+    private val settingsMap = HashMap<Long, Settings>()
 
-    val threshold = sentencesRepository.getThreshold()
+    private val _threshold = MutableStateFlow(0F)
+    val threshold = _threshold.asStateFlow()
 
-    val pause = sentencesRepository.getPause()
+    private val _pause = MutableStateFlow(0F)
+    val pause = _pause.asStateFlow()
+
+    private val userIsChangingSettings = MutableStateFlow(false)
 
     private val audioDetails = getAudioDetails(projectId)
 
@@ -76,17 +72,28 @@ class WaveformUniverseViewModel @Inject constructor(
 
     val waveform = combine(currentAudioId, waveformMap) { id, map ->
         val waveform = map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
-        sentencesRepository.setWaveform(waveform)
         waveform
     }
 
-    val sentences =
-        sentencesRepository.getSentencesCollectionFlow().transform { sentencesCollection ->
-            val id = sentencesCollection.id
-            sentencesMap[id] = sentencesCollection
-            emit(sentencesMap)
-        }.asLiveData()
+    private val generatedRanges = combine(threshold, pause, waveform) { threshold, pause, waveform ->
+        val ranges = ArrayList<Range<Int>>()
+        if (!waveform.isLoading) {
+            val findSentences = FindSentences()
+            ranges.addAll(findSentences(threshold.roundToInt().toByte(), pause.roundToInt(), waveform.data))
+        }
+        ranges
+        }.distinctUntilChanged()
 
+    val sentences = combine(currentAudioId, userIsChangingSettings, generatedRanges) { id, userIsChanging, ranges ->
+        if (userIsChanging) {
+            val newSentenceList = ArrayList<Sentence>()
+            ranges.forEach() {range ->
+                newSentenceList.add(Sentence(range = range, lineId = 0, take = 0))
+            }
+            sentencesMap[id]
+        }
+        sentencesMap[id]
+    }.distinctUntilChanged()
     init {
      /*   viewModelScope.launch {
             audioDetails.collect {
@@ -98,8 +105,9 @@ class WaveformUniverseViewModel @Inject constructor(
 
         viewModelScope.launch {
             getSettings(projectId).collect {
-                if (!settingsMap.value.equals(it)) {
-                    settingsMap.value.putAll(it)
+                if (!settingsMap.equals(it)) {
+                    settingsMap.putAll(it)
+                    refreshSliders()
                 }
             }
         }
@@ -112,26 +120,25 @@ class WaveformUniverseViewModel @Inject constructor(
     }
 
     fun setThreshold(value: Float) {
-        val threshold = value.roundToInt()
-        Log.d("SVM", "Received update to id ${currentAudioId.value}")
-        if ((value > 0) && settingsMap.value.containsKey(currentAudioId.value)) {
-            settingsMap.update { map ->
-                Log.d("SVM", "updating value $value")
-                map[currentAudioId.value] =
-                    map[currentAudioId.value]!!.copy(threshold = threshold)
-                map
-            }
-            sentencesRepository.setThreshold(value)
+        val id = currentAudioId.value
+        if ((value > 0) && settingsMap.containsKey(id)) {
+            settingsMap[id] = settingsMap[id]!!.copy(threshold = value)
+            refreshSliders()
         }
     }
 
     fun setPause(value: Float) {
-        val pause = value.roundToInt()
-        if ((value > 0) && settingsMap.value.containsKey(currentAudioId.value)) {
-            settingsMap.value[currentAudioId.value] =
-                settingsMap.value[currentAudioId.value]!!.copy(pause = pause)
-            sentencesRepository.setPause(value)
+        val id = currentAudioId.value
+        if ((value > 0) && settingsMap.containsKey(id)) {
+            settingsMap[id] = settingsMap[id]!!.copy(pause = value)
+            refreshSliders()
         }
+    }
+
+    private fun refreshSliders() {
+        val id = currentAudioId.value
+        _threshold.value = settingsMap[id]?.threshold ?: 0F
+        _pause.value = settingsMap[id]?.pause ?: 0F
     }
 
     fun onStopTrackingTouch() {

@@ -2,7 +2,6 @@ package com.stevedenheyer.scriptassistant.di
 
 import com.stevedenheyer.scriptassistant.common.data.room.repositories.AudioRepositoryImpl
 import com.stevedenheyer.scriptassistant.common.data.room.repositories.ProjectRepositoryImpl
-import com.stevedenheyer.scriptassistant.common.data.sentances.repositories.SentencesRepositoryImpl
 import com.stevedenheyer.scriptassistant.common.data.waveform.reposititories.WaveformRepositoryImpl
 import com.stevedenheyer.scriptassistant.common.domain.repositories.AudioRepository
 import com.stevedenheyer.scriptassistant.common.domain.repositories.ProjectRepository
@@ -30,9 +29,6 @@ abstract class ActivityRetainedModule {
     @Binds
     abstract fun bindWaveformRepository(repository: WaveformRepositoryImpl): WaveformRepository
 
-    @ActivityRetainedScoped
-    @Binds
-    abstract fun bindSentencesRepository(repository: SentencesRepositoryImpl): SentencesRepository
 /*
 
     companion object {

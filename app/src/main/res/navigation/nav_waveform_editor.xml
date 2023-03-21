@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_waveform_editor"
     app:startDestination="@id/placeholder">
 
@@ -11,6 +12,19 @@
         <argument
             android:name="projectId"
             app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/fileBrowserFragment"
+        android:name="com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserFragment"
+        android:label="file_browser_fragment"
+        tools:layout="@layout/file_browser_fragment" >
+        <argument
+            android:name="projectId"
+            app:argType="long" />
+        <action
+            android:id="@+id/action_fileBrowserFragment_to_audioEditorFragment"
+            app:destination="@id/audioEditorFragment" />
     </fragment>
 
     <fragment android:id="@+id/placeholder"

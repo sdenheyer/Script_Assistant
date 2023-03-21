@@ -44,7 +44,7 @@ data class AudioAggregateDB(
                         audioOwnerId = it.audioId,
                         name = name,
                         audioFile = File(it.audioFilePath),
-                        settings = Settings(0, 0),
+                        settings = Settings(0F, 0F),
                         sentences = emptyArray(),
                     )
                 )

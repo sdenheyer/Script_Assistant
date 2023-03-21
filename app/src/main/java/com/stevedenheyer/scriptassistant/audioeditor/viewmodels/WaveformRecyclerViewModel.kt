@@ -19,7 +19,6 @@ class WaveformRecyclerViewModel @Inject constructor(
     private val state: SavedStateHandle,
     private val eventHandler: EventHandler<EditorEvent>,
     private val getAudioDetails: GetAudioDetails,
-    private val getSentencesDetails: GetSentencesDetails,
     private val updateAudioDetails: UpdateAudioDetails,
     private val getWaveformFlow: GetWaveformFlow,
   //  private val getCurrentIdFlow: GetCurrentIdFlow,
@@ -45,7 +44,7 @@ class WaveformRecyclerViewModel @Inject constructor(
         emit(recyclerItemViewList)
     }.asLiveData()
 
-    init {
+   /* init {
         viewModelScope.launch {
                 combine(eventHandler.getEventFlow(), getSentencesDetails(), getAudioDetails(projectId)) { event, sentences, audioDetails ->
                     if (event is EditorEvent.RequestSentenceUpdate && !event.completed) {
@@ -65,7 +64,7 @@ class WaveformRecyclerViewModel @Inject constructor(
             }.collect()
         }
 
-    }
+    }*/
 
     fun getRecyclerItems() = recyclerItems
 

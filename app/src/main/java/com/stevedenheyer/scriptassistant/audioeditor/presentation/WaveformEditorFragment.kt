@@ -24,8 +24,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
 import com.stevedenheyer.scriptassistant.R
@@ -74,8 +76,10 @@ class WaveformEditorFragment : Fragment() {
         val tabs by waveformUniverseVM.audioFileTabUiState.collectAsStateWithLifecycle(initialValue = emptyList())
         Column(verticalArrangement = Arrangement.SpaceBetween) {
             Row {
-                Button(modifier = Modifier, onClick = {}) {
-                    Text(text = "Placeholder")
+                Button(modifier = Modifier, onClick = {
+                    findNavController().navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId))
+                }) {
+                    Text(text = "Import")
                 }
                 if (tabs.isNotEmpty()) {
                     TabRow(selectedTabIndex = currentAudioIndex) {
@@ -169,7 +173,7 @@ class WaveformEditorFragment : Fragment() {
 
         Column(verticalArrangement = Arrangement.SpaceBetween) {
             Button(modifier = Modifier, onClick = {}) {
-                Text(text = "Placeholder")
+                Text(text = "Import")
             }
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
                 HorizontalSlider(
