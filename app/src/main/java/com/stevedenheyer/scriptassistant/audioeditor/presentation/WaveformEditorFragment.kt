@@ -69,7 +69,7 @@ class WaveformEditorFragment : Fragment() {
     fun WaveformEditor(waveformVM: WaveformUniverseViewModel) {
 
         val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
-        val sentences = arrayOf(Sentence(lineId = 0, range = Range(5, 50), take = 0))
+        val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
         val pause by waveformVM.pause.collectAsStateWithLifecycle(initialValue = 0F)
         val threshold by waveformVM.threshold.collectAsStateWithLifecycle(initialValue = 0F)
         val currentAudioIndex by waveformVM.currentAudioIndex.collectAsStateWithLifecycle(initialValue = 0)
@@ -99,14 +99,15 @@ class WaveformEditorFragment : Fragment() {
                     onValueChanged = { value -> waveformVM.setThreshold(value)})
 
                 WaveformPageView(modifier = Modifier
-                    , waveform = waveform, sentences)
+                    , waveform = waveform, sentences ?: emptyList()
+                )
             }
 
             Row(modifier = Modifier) {
                 Spacer(modifier = Modifier
                     .width(20.dp)
                     .height(0.dp))
-                Slider(modifier = Modifier, value = pause, onValueChange = { value -> waveformVM.setPause(value) })
+                Slider(modifier = Modifier, value = pause, valueRange = 0F..1000F, onValueChange = { value -> waveformVM.setPause(value) })
             }
         }
     }
@@ -139,7 +140,7 @@ class WaveformEditorFragment : Fragment() {
     }
 
     @Composable
-    fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: Array<Sentence>) {
+    fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sentence>) {
                     Log.d("EDFRG", "Item: ${waveform.data.size}")
                     Box(
                         modifier = Modifier
@@ -159,7 +160,7 @@ class WaveformEditorFragment : Fragment() {
     fun WaveformPagePreview() {
         val dummyData = ByteArray(10000) { (Random.nextInt(-64, 64)).toByte() }
         val waveform = Waveform(id = 0, data = dummyData, isLoading = false)
-        val sentences = arrayOf(Sentence(lineId = 0, range = Range(0, 300), take = 0))
+        val sentences = listOf(Sentence(lineId = 0, range = Range(0, 300), take = 0))
         WaveformPageView(modifier = Modifier, waveform = waveform, sentences = sentences)
     }
 
@@ -168,8 +169,7 @@ class WaveformEditorFragment : Fragment() {
     fun Editor() {
         val dummyData = ByteArray(10000) { (Random.nextInt(-64, 64)).toByte() }
         val waveform = Waveform(id = 0, data = dummyData, isLoading = false)
-        val sentences = arrayOf(Sentence(lineId = 0, range = Range(0, 300), take = 0))
-
+        val sentences = listOf(Sentence(lineId = 0, range = Range(0, 300), take = 0))
 
         Column(verticalArrangement = Arrangement.SpaceBetween) {
             Button(modifier = Modifier, onClick = {}) {

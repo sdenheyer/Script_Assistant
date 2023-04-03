@@ -27,12 +27,17 @@ import kotlin.math.roundToInt
 
 
 @Composable
-fun SentenceMarkerCanvas(modifier: Modifier, sentences:Array<Sentence>, updateSentence: (Int, Sentence) -> Unit, dragStopped: () -> Unit) {
+fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<Sentence>, updateSentence: (Int, Sentence) -> Unit, dragStopped: () -> Unit) {
   //  Log.d("MRKR", "Composing...")
-    LazyRow(modifier.width((sentences.last().range.upper * 2).dp)) {
+    val width = try {
+        sentences.last().range.upper * 2
+    } catch (e: NoSuchElementException) {
+        0
+    }
+    LazyRow(modifier.width(width.dp)) {
         itemsIndexed(items = sentences) { index, sentence ->
                 MarkIn(modifier = Modifier,
-                    horizontalOffset = sentence.range.lower,
+                    horizontalOffset = sentence.range.lower ,
                     onDrag = { offset -> updateSentence(index, sentence.copy(Range(offset, sentence.range.upper))) },
                     dragStopped = dragStopped)
                 MarkOut(modifier = Modifier,
@@ -86,7 +91,7 @@ fun MarkOut(modifier: Modifier, horizontalOffset: Int, onDrag: (Int) -> Unit, dr
 @Preview
 @Composable
 fun SentenceMarkerPreview() {
-    val _sentences = MutableStateFlow(arrayOf(Sentence(lineId = 0, range = Range(5, 50), take = 0)))
+    val _sentences = MutableStateFlow(listOf(Sentence(lineId = 0, range = Range(5, 50), take = 0)))
     val sentences by _sentences.collectAsState()
 
     Box(modifier = Modifier
@@ -95,7 +100,7 @@ fun SentenceMarkerPreview() {
         SentenceMarkerCanvas(modifier = Modifier.fillMaxSize(), sentences = sentences,
             updateSentence = { index, sentence ->
                 _sentences.update { sentences ->
-                    sentences[index] = sentence
+                  //  sentences[index] = sentence
                     sentences
                 }
         },

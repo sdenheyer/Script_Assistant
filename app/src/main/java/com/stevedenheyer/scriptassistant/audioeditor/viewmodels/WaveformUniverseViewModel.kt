@@ -54,7 +54,7 @@ class WaveformUniverseViewModel @Inject constructor(
     private val _pause = MutableStateFlow(0F)
     val pause = _pause.asStateFlow()
 
-    private val userIsChangingSettings = MutableStateFlow(false)
+    private val userIsChangingSettings = MutableStateFlow(true) //TEMP!!!
 
     private val audioDetails = getAudioDetails(projectId)
 
@@ -66,7 +66,7 @@ class WaveformUniverseViewModel @Inject constructor(
         tabs.toList()
     }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
 
-    val sentencesMap = LinkedHashMap<Long, SentencesCollection>()
+    val sentencesMap = LinkedHashMap<Long, List<Sentence>>()
 
     private val waveformMap = getWaveformMapFlow(projectId)
 
@@ -82,18 +82,19 @@ class WaveformUniverseViewModel @Inject constructor(
             ranges.addAll(findSentences(threshold.roundToInt().toByte(), pause.roundToInt(), waveform.data))
         }
         ranges
-        }.distinctUntilChanged()
+        }.flowOn(Dispatchers.IO).distinctUntilChanged()
 
     val sentences = combine(currentAudioId, userIsChangingSettings, generatedRanges) { id, userIsChanging, ranges ->
         if (userIsChanging) {
             val newSentenceList = ArrayList<Sentence>()
-            ranges.forEach() {range ->
+            ranges.forEach {range ->
                 newSentenceList.add(Sentence(range = range, lineId = 0, take = 0))
             }
-            sentencesMap[id]
+            sentencesMap[id] = newSentenceList
+            Log.d("WUVM", "Found ${newSentenceList.size}")
         }
         sentencesMap[id]
-    }.distinctUntilChanged()
+    }.flowOn(Dispatchers.IO).distinctUntilChanged()
     init {
      /*   viewModelScope.launch {
             audioDetails.collect {

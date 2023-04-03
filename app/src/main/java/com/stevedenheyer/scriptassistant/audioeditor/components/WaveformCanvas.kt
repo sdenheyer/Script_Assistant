@@ -22,12 +22,12 @@ fun WaveformCanvas(modifier: Modifier, waveform: Waveform) {
         //Log.d("CVS", "Canvas size: $height ${size.width}")
 
         waveform.data.forEachIndexed { index, byte ->
-            val x = (index / 2).toFloat()
+            val x = index.toFloat() / 2
             val y = centerY + (byte * height / 128F)
             drawLine(
                 start = Offset(x = x, y = centerY),
                 end = Offset(x = x, y = y),
-                color = if (waveform.isLoading) Color.Green else Color.Gray
+                color = if (waveform.isLoading) Color.Gray else Color.Green
             )
         }
     }
