@@ -35,7 +35,7 @@ class WaveformsUniverseAdapter : RecyclerView.Adapter<WaveformsUniverseAdapter.V
 
         fun bind(sentencesCollection: SentencesCollection) {
         //    Log.d("ADPT", "Binding sentences...")
-            waveformView.setSentanceMarkers(sentencesCollection.data)
+            waveformView.setSentanceMarkers(sentencesCollection.data.toTypedArray())
         }
     }
 
@@ -47,7 +47,7 @@ class WaveformsUniverseAdapter : RecyclerView.Adapter<WaveformsUniverseAdapter.V
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val waveformData = waveformDiff.currentList.get(position)
-        val sentences = sentencesMap[getItemId(position)] ?: SentencesCollection(-1, emptyArray())
+        val sentences = sentencesMap[getItemId(position)] ?: SentencesCollection(-1, emptyList())
         holder.bind(waveformData)
         holder.bind(sentences)
     }

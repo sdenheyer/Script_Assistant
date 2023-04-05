@@ -49,7 +49,6 @@ class WaveformEditorFragment : Fragment() {
     private val args:WaveformEditorFragmentArgs by navArgs()
 
     private val waveformUniverseVM: WaveformUniverseViewModel by navGraphViewModels(R.id.waveformEditorFragment) {defaultViewModelProviderFactory}
-   // private val settingsVM: SettingsViewModel by navGraphViewModels(R.id.waveformEditorFragment) { defaultViewModelProviderFactory }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -107,7 +106,7 @@ class WaveformEditorFragment : Fragment() {
                 Spacer(modifier = Modifier
                     .width(20.dp)
                     .height(0.dp))
-                Slider(modifier = Modifier, value = pause, valueRange = 0F..1000F, onValueChange = { value -> waveformVM.setPause(value) })
+                Slider(modifier = Modifier, value = pause, valueRange = 10F..1000F, onValueChange = { value -> waveformVM.setPause(value) })
             }
         }
     }

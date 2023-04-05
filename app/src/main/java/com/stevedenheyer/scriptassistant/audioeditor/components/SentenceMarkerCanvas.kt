@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.stevedenheyer.scriptassistant.R
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
 import android.util.Range
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
@@ -30,12 +32,12 @@ import kotlin.math.roundToInt
 fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<Sentence>, updateSentence: (Int, Sentence) -> Unit, dragStopped: () -> Unit) {
   //  Log.d("MRKR", "Composing...")
     val width = try {
-        sentences.last().range.upper * 2
+        sentences.last().range.upper + 2
     } catch (e: NoSuchElementException) {
         0
     }
-    LazyRow(modifier.width(width.dp)) {
-        itemsIndexed(items = sentences) { index, sentence ->
+    Box(modifier.width(width.dp)) {
+        sentences.forEachIndexed { index, sentence ->
                 MarkIn(modifier = Modifier,
                     horizontalOffset = sentence.range.lower ,
                     onDrag = { offset -> updateSentence(index, sentence.copy(Range(offset, sentence.range.upper))) },
@@ -54,9 +56,10 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
         painter = painter,
         contentDescription = "Marker",
         modifier = modifier
+
             .absoluteOffset(horizontalOffset.dp, 0.dp)
             .fillMaxHeight()
-            .scale(1.5F)
+            //.scale(1.5F)
             .draggable(rememberDraggableState(onDelta = { delta ->
                 Log.d("MRKR", "Drag...")
                 val offset = horizontalOffset + delta.roundToInt()

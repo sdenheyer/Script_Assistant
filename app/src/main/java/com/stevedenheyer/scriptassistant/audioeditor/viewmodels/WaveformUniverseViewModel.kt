@@ -121,6 +121,7 @@ class WaveformUniverseViewModel @Inject constructor(
     }
 
     fun setThreshold(value: Float) {
+        userIsChangingSettings.value = true
         val id = currentAudioId.value
         if ((value > 0) && settingsMap.containsKey(id)) {
             settingsMap[id] = settingsMap[id]!!.copy(threshold = value)
@@ -129,11 +130,16 @@ class WaveformUniverseViewModel @Inject constructor(
     }
 
     fun setPause(value: Float) {
+        userIsChangingSettings.value = true
         val id = currentAudioId.value
         if ((value > 0) && settingsMap.containsKey(id)) {
             settingsMap[id] = settingsMap[id]!!.copy(pause = value)
             refreshSliders()
         }
+    }
+
+    fun setUserIsChangingSettings(value: Boolean) {
+        userIsChangingSettings.value = value
     }
 
     private fun refreshSliders() {

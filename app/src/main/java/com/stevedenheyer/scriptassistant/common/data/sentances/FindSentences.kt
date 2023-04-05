@@ -36,7 +36,7 @@ class FindSentences() {
                     if (candidate == null) {
                         candidate = byte.index
                     } else if ((byte.index - candidate) > pauseLength) {
-                        sentenceList.add(Range(sentanceBegin, candidate))
+                        sentenceList.add(Range(sentanceBegin / 2, candidate / 2))
                         candidate = null
                         sentanceBegin = null
                     }
