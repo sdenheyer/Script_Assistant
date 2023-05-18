@@ -56,8 +56,10 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
         painter = painter,
         contentDescription = "Marker",
         modifier = modifier
-
-            .absoluteOffset(horizontalOffset.dp, 0.dp)
+            .graphicsLayer {
+                translationX = horizontalOffset.toFloat()
+            }
+            //.absoluteOffset(horizontalOffset.dp, 0.dp)
             .fillMaxHeight()
             //.scale(1.5F)
             .draggable(rememberDraggableState(onDelta = { delta ->

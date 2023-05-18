@@ -10,7 +10,8 @@ import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetAudioDetails
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetSettings
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetWaveformMapFlow
-import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
+ import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.UpdateAudioDetails
+ import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
  import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +31,7 @@ class WaveformUniverseViewModel @Inject constructor(
     private val getSettings: GetSettings,
     private val getAudioDetails: GetAudioDetails,
     private val getWaveformMapFlow: GetWaveformMapFlow,
+    private val updateAudioDetails: UpdateAudioDetails,
     private val eventHandler: EventHandler<EditorEvent>,
 ) : ViewModel() {
 
@@ -96,6 +98,17 @@ class WaveformUniverseViewModel @Inject constructor(
         sentencesMap[id]
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
     init {
+        viewModelScope.launch {
+            combine(userIsChangingSettings, audioDetails) { userIsChanging, details ->
+                Log.d("WUVM", "Changing $userIsChanging")
+                val id = currentAudioId.value
+                if (!userIsChanging) {  //Infinite loop
+                    Log.d("WUVM", "Updating details...")
+                    updateAudioDetails(projectId, details[id]!!)
+                }
+            }.collect()
+        }
+
      /*   viewModelScope.launch {
             audioDetails.collect {
                 Log.d("VM", "Sending files...")
@@ -117,6 +130,7 @@ class WaveformUniverseViewModel @Inject constructor(
     fun setCurrentAudioId(key: Long) {
         if (key != currentAudioId.value) {
             currentAudioId.value = key
+            refreshSliders()
         }
     }
 
@@ -138,18 +152,14 @@ class WaveformUniverseViewModel @Inject constructor(
         }
     }
 
-    fun setUserIsChangingSettings(value: Boolean) {
-        userIsChangingSettings.value = value
+    fun setUserIsDoneChangingSettings() {
+        userIsChangingSettings.value = false
     }
 
     private fun refreshSliders() {
         val id = currentAudioId.value
         _threshold.value = settingsMap[id]?.threshold ?: 0F
         _pause.value = settingsMap[id]?.pause ?: 0F
-    }
-
-    fun onStopTrackingTouch() {
-        eventHandler.onEvent(EditorEvent.RequestSentenceUpdate(false))
     }
 
 }

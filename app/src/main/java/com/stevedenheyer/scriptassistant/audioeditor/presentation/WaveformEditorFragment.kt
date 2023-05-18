@@ -95,7 +95,8 @@ class WaveformEditorFragment : Fragment() {
                 HorizontalSlider(
                     modifier = Modifier,
                     threshold = threshold,
-                    onValueChanged = { value -> waveformVM.setThreshold(value)})
+                    onValueChanged = { value -> waveformVM.setThreshold(value)},
+                    onValueChangedFinished = { waveformVM.setUserIsDoneChangingSettings() })
 
                 WaveformPageView(modifier = Modifier
                     , waveform = waveform, sentences ?: emptyList()
@@ -106,13 +107,14 @@ class WaveformEditorFragment : Fragment() {
                 Spacer(modifier = Modifier
                     .width(20.dp)
                     .height(0.dp))
-                Slider(modifier = Modifier, value = pause, valueRange = 10F..1000F, onValueChange = { value -> waveformVM.setPause(value) })
+                Slider(modifier = Modifier, value = pause, valueRange = 10F..1000F, onValueChange = { value -> waveformVM.setPause(value) },
+                onValueChangeFinished = { waveformVM.setUserIsDoneChangingSettings() })
             }
         }
     }
 
     @Composable
-    fun HorizontalSlider(modifier: Modifier, threshold: Float, onValueChanged: (Float) -> Unit) {
+    fun HorizontalSlider(modifier: Modifier, threshold: Float, onValueChanged: (Float) -> Unit, onValueChangedFinished: () -> Unit) {
             Slider(
                 modifier = modifier
                     .graphicsLayer {
@@ -134,7 +136,7 @@ class WaveformEditorFragment : Fragment() {
 
                     }
                     ,
-                value = threshold, onValueChange = { threshold -> onValueChanged(threshold) }, valueRange = 0f..100f
+                value = threshold, onValueChange = { threshold -> onValueChanged(threshold) }, onValueChangeFinished = onValueChangedFinished, valueRange = 0f..100f
             )
     }
 
@@ -178,7 +180,8 @@ class WaveformEditorFragment : Fragment() {
                 HorizontalSlider(
                     modifier = Modifier,
                     threshold = 0f,
-                    onValueChanged = {})
+                    onValueChanged = {},
+                onValueChangedFinished = {})
 
                 WaveformPageView(modifier = Modifier
                     , waveform, sentences)
@@ -223,7 +226,8 @@ class WaveformEditorFragment : Fragment() {
                         height = Dimension.fillToConstraints
                     },
                 threshold = 0F,
-                onValueChanged = {}
+                onValueChanged = {},
+                onValueChangedFinished = {}
             )
         }
     }
