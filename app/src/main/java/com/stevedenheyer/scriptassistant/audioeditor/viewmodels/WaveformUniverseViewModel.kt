@@ -32,7 +32,7 @@ class WaveformUniverseViewModel @Inject constructor(
     private val getAudioDetails: GetAudioDetails,
     private val getWaveformMapFlow: GetWaveformMapFlow,
     private val updateAudioDetails: UpdateAudioDetails,
-    private val eventHandler: EventHandler<EditorEvent>,
+   // private val eventHandler: EventHandler<EditorEvent>,
 ) : ViewModel() {
 
     private val projectId = state.get<Long>("projectId")!!
@@ -57,6 +57,8 @@ class WaveformUniverseViewModel @Inject constructor(
     val pause = _pause.asStateFlow()
 
     private val userIsChangingSettings = MutableStateFlow(true) //TEMP!!!
+
+    private val eventFlow:MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
     private val audioDetails = getAudioDetails(projectId)
 
@@ -99,12 +101,14 @@ class WaveformUniverseViewModel @Inject constructor(
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
     init {
         viewModelScope.launch {
-            combine(userIsChangingSettings, audioDetails) { userIsChanging, details ->
-                Log.d("WUVM", "Changing $userIsChanging")
+            combine(eventFlow, audioDetails) { event, oldDetails ->
+                Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
-                if (!userIsChanging) {  //Infinite loop
+                if (event is EditorEvent.RequestSentenceUpdate && !event.completed) {  //Infinite loop
                     Log.d("WUVM", "Updating details...")
-                    updateAudioDetails(projectId, details[id]!!)
+                    val details = oldDetails[id]!!.copy(settings = Settings(threshold = threshold.value, pause = pause.value))
+                    updateAudioDetails(projectId, details)
+                    eventFlow.value = EditorEvent.RequestSentenceUpdate(true)
                 }
             }.collect()
         }
@@ -154,6 +158,7 @@ class WaveformUniverseViewModel @Inject constructor(
 
     fun setUserIsDoneChangingSettings() {
         userIsChangingSettings.value = false
+        eventFlow.value = EditorEvent.RequestSentenceUpdate(false)
     }
 
     private fun refreshSliders() {
