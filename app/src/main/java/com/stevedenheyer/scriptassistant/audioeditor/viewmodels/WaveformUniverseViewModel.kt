@@ -18,7 +18,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
-import kotlin.math.roundToInt
+ import kotlin.coroutines.coroutineContext
+ import kotlin.math.roundToInt
 
 data class AudioFileTabUi(
     val id: Long,
@@ -37,6 +38,18 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val projectId = state.get<Long>("projectId")!!
 
+    private val settingsMap = HashMap<Long, Settings>()
+
+    val sentencesMap = LinkedHashMap<Long, List<Sentence>>()
+
+    val audioFileTabUiState = getAudioDetails(projectId).map { details ->
+        val tabs = ArrayList<AudioFileTabUi>()
+        details.forEach {
+            tabs.add(AudioFileTabUi(it.key, it.value.name))
+        }
+        tabs.toList()
+    }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
+
     private val currentAudioId = MutableStateFlow(0L)
 
     val currentAudioIndex = currentAudioId.map {id ->
@@ -48,7 +61,10 @@ class WaveformUniverseViewModel @Inject constructor(
         }
         index }
 
-    private val settingsMap = HashMap<Long, Settings>()
+    val waveform = combine(currentAudioId, getWaveformMapFlow(projectId)) { id, map ->
+        val waveform = map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+        waveform
+    }
 
     private val _threshold = MutableStateFlow(0F)
     val threshold = _threshold.asStateFlow()
@@ -60,29 +76,10 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val eventFlow:MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
-    private val audioDetails = getAudioDetails(projectId)
-
-    val audioFileTabUiState = audioDetails.map { details ->
-        val tabs = ArrayList<AudioFileTabUi>()
-        details.forEach {
-            tabs.add(AudioFileTabUi(it.key, it.value.name))
-        }
-        tabs.toList()
-    }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
-
-    val sentencesMap = LinkedHashMap<Long, List<Sentence>>()
-
-    private val waveformMap = getWaveformMapFlow(projectId)
-
-    val waveform = combine(currentAudioId, waveformMap) { id, map ->
-        val waveform = map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
-        waveform
-    }
-
     private val generatedRanges = combine(threshold, pause, waveform) { threshold, pause, waveform ->
         val ranges = ArrayList<Range<Int>>()
         if (!waveform.isLoading) {
-            val findSentences = FindSentences()
+            val findSentences = FindSentences(coroutineContext.job)
             ranges.addAll(findSentences(threshold.roundToInt().toByte(), pause.roundToInt(), waveform.data))
         }
         ranges
@@ -101,7 +98,12 @@ class WaveformUniverseViewModel @Inject constructor(
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
     init {
         viewModelScope.launch {
-            combine(eventFlow, audioDetails) { event, oldDetails ->
+            settingsMap.putAll(getSettings(projectId).first())
+            refreshSliders()
+        }
+
+        viewModelScope.launch {
+            combine(eventFlow, getAudioDetails(projectId)) { event, oldDetails ->
                 Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
                 if (event is EditorEvent.RequestSentenceUpdate && !event.completed) {  //Infinite loop
@@ -113,22 +115,13 @@ class WaveformUniverseViewModel @Inject constructor(
             }.collect()
         }
 
-     /*   viewModelScope.launch {
-            audioDetails.collect {
-                Log.d("VM", "Sending files...")
-                val fileList = it.mapValues { it.value.audioFile }
-                waveformRepository.generateWaveforms(fileList)
-            }
-        }*/
 
-        viewModelScope.launch {
-            getSettings(projectId).collect {
+    /*        getSettings(projectId).collect {
                 if (!settingsMap.equals(it)) {
                     settingsMap.putAll(it)
                     refreshSliders()
                 }
-            }
-        }
+            }*/
     }
 
     fun setCurrentAudioId(key: Long) {

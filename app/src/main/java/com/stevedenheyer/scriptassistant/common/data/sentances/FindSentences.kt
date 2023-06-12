@@ -4,10 +4,11 @@ import android.util.Range
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.utils.millisecondsToIndex
 import com.stevedenheyer.scriptassistant.utils.sampleRate
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlin.math.roundToInt
 
-class FindSentences() {
+class FindSentences constructor (private val job: Job) {
     private val syllabelLength = millisecondsToIndex(150)
 
     private val sentenceList = ArrayList<Range<Int>>()
@@ -20,7 +21,7 @@ class FindSentences() {
         var candidate: Int? = null
         var sentanceBegin: Int? = null
 
-        while (iterator.hasNext()) {
+        while (iterator.hasNext() && job.isActive) {
             val byte = iterator.next()
             if (byte.index % 2 == 0) {
                 if (sentanceBegin == null) {
