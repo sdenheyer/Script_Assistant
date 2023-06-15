@@ -13,21 +13,22 @@ import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import kotlin.random.Random
 
 @Composable
-fun WaveformCanvas(modifier: Modifier, waveform: Waveform) {
+fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
 
-    androidx.compose.foundation.Canvas(modifier = modifier.fillMaxHeight().width((waveform.data.size / 2).dp)) {
+    androidx.compose.foundation.Canvas(modifier = modifier.fillMaxHeight().width((waveform.size / 2).dp)) {
         val height = size.height / 2
         val centerY = size.center.y
 
         //Log.d("CVS", "Canvas size: $height ${size.width}")
 
-        waveform.data.forEachIndexed { index, byte ->
+        waveform.forEachIndexed { index, byte ->
             val x = index.toFloat() / 2
             val y = centerY + (byte * height / 128F)
             drawLine(
                 start = Offset(x = x, y = centerY),
                 end = Offset(x = x, y = y),
-                color = if (waveform.isLoading) Color.Gray else Color.Green
+                color = color
+                //if (waveform.isLoading) Color.Gray else Color.Green
             )
         }
     }
@@ -40,6 +41,6 @@ fun waveformPreview() {
     val waveform = Waveform(id = 0, data = dummyData, isLoading = true)
 
     Box(modifier = Modifier.height(100.dp).wrapContentWidth()) {
-        WaveformCanvas(modifier = Modifier, waveform = waveform)
+        WaveformCanvas(modifier = Modifier, waveform = dummyData, color = Color.Gray)
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
@@ -147,7 +148,8 @@ class WaveformEditorFragment : Fragment() {
                         modifier = Modifier
                             .horizontalScroll(rememberScrollState())
                     ) {
-                        WaveformCanvas(modifier = Modifier, waveform = waveform)
+                        val color = if (waveform.isLoading) Color.Gray else Color.Green
+                        WaveformCanvas(modifier = Modifier, waveform = waveform.data, color = color)
                         SentenceMarkerCanvas(
                             modifier = Modifier,
                             sentences = sentences,

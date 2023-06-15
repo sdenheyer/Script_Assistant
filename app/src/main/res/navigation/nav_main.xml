@@ -18,8 +18,7 @@
     <fragment
         android:id="@+id/audioEditorFragment"
         android:name="com.stevedenheyer.scriptassistant.audioeditor.presentation.AudioEditorFragment"
-        android:label="audio_editor_fragment"
-        tools:layout="@layout/audio_editor_fragment">
+        android:label="audio_editor_fragment">
         <argument
             android:name="projectId"
             app:argType="long" />

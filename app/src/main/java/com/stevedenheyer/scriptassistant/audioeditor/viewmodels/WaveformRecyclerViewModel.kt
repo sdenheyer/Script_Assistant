@@ -28,7 +28,7 @@ class WaveformRecyclerViewModel @Inject constructor(
 
     private var audioDetailsMap:Map<Long,AudioDetails> = emptyMap()
 
-    private val recyclerItems = combineTransform(getAudioDetails(projectId), getWaveformFlow()) { details, waveform ->
+    private val recyclerItems:Flow<List<WaveformRecyclerItemView>> = combineTransform(getAudioDetails(projectId), getWaveformFlow()) { details, waveform ->
         audioDetailsMap = details
         val recyclerItemViewList = ArrayList<WaveformRecyclerItemView>()
         details[0]?.sentences?.forEach {
@@ -42,7 +42,7 @@ class WaveformRecyclerViewModel @Inject constructor(
             )
         }
         emit(recyclerItemViewList)
-    }.asLiveData()
+    }
 
    /* init {
         viewModelScope.launch {

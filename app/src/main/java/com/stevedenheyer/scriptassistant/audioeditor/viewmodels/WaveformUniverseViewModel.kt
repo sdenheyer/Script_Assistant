@@ -92,7 +92,7 @@ class WaveformUniverseViewModel @Inject constructor(
                 newSentenceList.add(Sentence(range = range, lineId = 0, take = 0))
             }
             sentencesMap[id] = newSentenceList
-            Log.d("WUVM", "Found ${newSentenceList.size}")
+           // Log.d("WUVM", "Found ${newSentenceList.size}")
         }
         sentencesMap[id]
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
@@ -133,19 +133,21 @@ class WaveformUniverseViewModel @Inject constructor(
 
     fun setThreshold(value: Float) {
         userIsChangingSettings.value = true
+        _threshold.value = value
         val id = currentAudioId.value
-        if ((value > 0) && settingsMap.containsKey(id)) {
+        if ((value >= 0) && settingsMap.containsKey(id)) {
             settingsMap[id] = settingsMap[id]!!.copy(threshold = value)
-            refreshSliders()
+            //refreshSliders()
         }
     }
 
     fun setPause(value: Float) {
         userIsChangingSettings.value = true
+        _pause.value = value
         val id = currentAudioId.value
-        if ((value > 0) && settingsMap.containsKey(id)) {
+        if ((value >= 0) && settingsMap.containsKey(id)) {
             settingsMap[id] = settingsMap[id]!!.copy(pause = value)
-            refreshSliders()
+            //refreshSliders()
         }
     }
 
