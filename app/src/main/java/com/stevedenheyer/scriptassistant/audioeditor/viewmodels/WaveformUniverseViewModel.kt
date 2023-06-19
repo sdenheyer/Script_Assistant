@@ -33,7 +33,7 @@ class WaveformUniverseViewModel @Inject constructor(
     private val getAudioDetails: GetAudioDetails,
     private val getWaveformMapFlow: GetWaveformMapFlow,
     private val updateAudioDetails: UpdateAudioDetails,
-   // private val eventHandler: EventHandler<EditorEvent>,
+    private val eventHandler: EventHandler<EditorEvent>,
 ) : ViewModel() {
 
     private val projectId = state.get<Long>("projectId")!!
@@ -74,7 +74,9 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val userIsChangingSettings = MutableStateFlow(true) //TEMP!!!
 
-    private val eventFlow:MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
+    private val localEventFlow:MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
+
+    private val eventFlow = eventHandler.getEventFlow()
 
     private val generatedRanges = combine(threshold, pause, waveform) { threshold, pause, waveform ->
         val ranges = ArrayList<Range<Int>>()
@@ -103,14 +105,17 @@ class WaveformUniverseViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            combine(eventFlow, getAudioDetails(projectId)) { event, oldDetails ->
+            combine(localEventFlow, getAudioDetails(projectId)) { event, oldDetails ->
                 Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
                 if (event is EditorEvent.RequestSentenceUpdate && !event.completed) {  //Infinite loop
                     Log.d("WUVM", "Updating details...")
-                    val details = oldDetails[id]!!.copy(settings = Settings(threshold = threshold.value, pause = pause.value))
+                    val sentences = sentencesMap[id]!!.toTypedArray()
+                    val details = oldDetails[id]!!.copy(settings = Settings(threshold = threshold.value, pause = pause.value), sentences = sentences)
                     updateAudioDetails(projectId, details)
-                    eventFlow.value = EditorEvent.RequestSentenceUpdate(true)
+                    localEventFlow.value = EditorEvent.RequestSentenceUpdate(true)
+
+                    eventFlow.value = EditorEvent.RequestRecyclerUpdate(SentencesCollection(id = id, data = sentences))
                 }
             }.collect()
         }
@@ -153,7 +158,7 @@ class WaveformUniverseViewModel @Inject constructor(
 
     fun setUserIsDoneChangingSettings() {
         userIsChangingSettings.value = false
-        eventFlow.value = EditorEvent.RequestSentenceUpdate(false)
+        localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
     }
 
     private fun refreshSliders() {

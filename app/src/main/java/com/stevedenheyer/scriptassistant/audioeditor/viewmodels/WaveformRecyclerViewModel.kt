@@ -20,7 +20,7 @@ class WaveformRecyclerViewModel @Inject constructor(
     private val eventHandler: EventHandler<EditorEvent>,
     private val getAudioDetails: GetAudioDetails,
     private val updateAudioDetails: UpdateAudioDetails,
-    private val getWaveformFlow: GetWaveformFlow,
+    private val getWaveformMapFlow: GetWaveformMapFlow,
   //  private val getCurrentIdFlow: GetCurrentIdFlow,
     ) : ViewModel() {
 
@@ -28,6 +28,26 @@ class WaveformRecyclerViewModel @Inject constructor(
 
     private var audioDetailsMap:Map<Long,AudioDetails> = emptyMap()
 
+    private val waveform = getWaveformMapFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    private val recyclerItems = eventHandler.getEventFlow().map {event ->
+        val recyclerItemViewList = ArrayList<WaveformRecyclerItemView>()
+        if (event is EditorEvent.RequestRecyclerUpdate) {
+            val id = event.sentences.id
+            event.sentences.data.forEach {
+                recyclerItemViewList.add(
+                    WaveformRecyclerItemView(
+                        audioOwnerId = id,
+                        text = "",
+                        range = it.range,
+                        waveform = waveform.value[id]!!.data.copyOfRange(it.range.lower, it.range.upper)
+                    )
+                )
+            }
+        }
+        recyclerItemViewList.toTypedArray()
+    }
+/*
     private val recyclerItems:Flow<List<WaveformRecyclerItemView>> = combineTransform(getAudioDetails(projectId), getWaveformFlow()) { details, waveform ->
         audioDetailsMap = details
         val recyclerItemViewList = ArrayList<WaveformRecyclerItemView>()
@@ -42,7 +62,7 @@ class WaveformRecyclerViewModel @Inject constructor(
             )
         }
         emit(recyclerItemViewList)
-    }
+    }*/
 
    /* init {
         viewModelScope.launch {

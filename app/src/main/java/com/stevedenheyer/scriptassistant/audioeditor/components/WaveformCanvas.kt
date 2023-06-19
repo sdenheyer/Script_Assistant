@@ -15,7 +15,7 @@ import kotlin.random.Random
 @Composable
 fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
 
-    androidx.compose.foundation.Canvas(modifier = modifier.fillMaxHeight().width((waveform.size / 2).dp)) {
+    androidx.compose.foundation.Canvas(modifier = modifier.width((waveform.size / 2).dp)) {
         val height = size.height / 2
         val centerY = size.center.y
 

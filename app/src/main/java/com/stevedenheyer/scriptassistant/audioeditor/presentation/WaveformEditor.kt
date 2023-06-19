@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -32,7 +33,7 @@ import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformUniverseViewModel
 
 @Composable
-fun WaveformEditor(waveformVM: WaveformUniverseViewModel, onNavigateToImport: () -> Unit) {
+fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, onNavigateToImport: () -> Unit) {
 
     val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
     val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -40,10 +41,10 @@ fun WaveformEditor(waveformVM: WaveformUniverseViewModel, onNavigateToImport: ()
     val threshold by waveformVM.threshold.collectAsStateWithLifecycle(initialValue = 0F)
     val currentAudioIndex by waveformVM.currentAudioIndex.collectAsStateWithLifecycle(initialValue = 0)
     val tabs by waveformVM.audioFileTabUiState.collectAsStateWithLifecycle(initialValue = emptyList())
-    Column(verticalArrangement = Arrangement.SpaceBetween) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
         Row {
             Button(modifier = Modifier, onClick = {
-                onNavigateToImport
+                onNavigateToImport()
                 //findNavController().navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId))
             }) {
                 Text(text = "Import")
@@ -89,7 +90,7 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
             .horizontalScroll(rememberScrollState())
     ) {
         val color = if (waveform.isLoading) Color.Gray else Color.Green
-        WaveformCanvas(modifier = Modifier, waveform = waveform.data, color = color)
+        WaveformCanvas(modifier = Modifier.fillMaxHeight(), waveform = waveform.data, color = color)
         SentenceMarkerCanvas(
             modifier = Modifier,
             sentences = sentences,

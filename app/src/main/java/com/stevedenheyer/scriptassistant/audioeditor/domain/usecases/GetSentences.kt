@@ -7,6 +7,6 @@ import javax.inject.Inject
 
 class GetSentences @Inject constructor(private val audioRepository: AudioRepository) {
     operator fun invoke(projectId: Long) = audioRepository.getAudioAggregate(projectId).map {
-        it.associateBy { it.audioOwnerId }.mapValues { SentencesCollection(it.value.audioOwnerId, it.value.sentences.toList()) }
+        it.associateBy { it.audioOwnerId }.mapValues { SentencesCollection(it.value.audioOwnerId, it.value.sentences) }
     }
 }
