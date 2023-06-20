@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +33,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
 import com.stevedenheyer.scriptassistant.R
 import com.stevedenheyer.scriptassistant.audioeditor.components.WaveformCanvas
+import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.ScriptViewmodel
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformRecyclerItemView
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformRecyclerViewModel
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformUniverseViewModel
@@ -49,6 +52,7 @@ class AudioEditorFragment : Fragment() {
 
     private val waveformRecyclerVM: WaveformRecyclerViewModel by navGraphViewModels(R.id.audioEditorFragment) {defaultViewModelProviderFactory}
     private val waveformUniverseVM: WaveformUniverseViewModel by navGraphViewModels(R.id.audioEditorFragment) {defaultViewModelProviderFactory}
+    private val scriptVM: ScriptViewmodel by navGraphViewModels(R.id.audioEditorFragment) {defaultViewModelProviderFactory}
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,8 +91,11 @@ class AudioEditorFragment : Fragment() {
         //navController: NavHostController = rememberNavController()
     ) {
         Column{
-            WaveformRecycler(modifier = Modifier.weight(1f), waveformVM = waveformRecyclerVM)
-            WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformUniverseVM, onNavigateToImport = { navController.navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId))})
+            Row (modifier = Modifier.weight(1f)){
+                WaveformRecycler(modifier = Modifier.weight(3f), waveformVM = waveformRecyclerVM)
+                Script(scriptVM = scriptVM, modifier = Modifier.weight(1f).fillMaxHeight(), onNavigateToScriptEditor = { scriptId -> navController.navigate(R.id.scriptEditorFragment, bundleOf("scriptId" to scriptId)) } )
+                }
+            WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformUniverseVM, onNavigateToImport = { navController.navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId)) } )
         }
     }
 
