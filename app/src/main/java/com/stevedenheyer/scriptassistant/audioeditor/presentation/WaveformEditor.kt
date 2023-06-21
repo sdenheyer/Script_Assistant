@@ -41,6 +41,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, on
     val threshold by waveformVM.threshold.collectAsStateWithLifecycle(initialValue = 0F)
     val currentAudioIndex by waveformVM.currentAudioIndex.collectAsStateWithLifecycle(initialValue = 0)
     val tabs by waveformVM.audioFileTabUiState.collectAsStateWithLifecycle(initialValue = emptyList())
+
     Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
         Row {
             Button(modifier = Modifier, onClick = {

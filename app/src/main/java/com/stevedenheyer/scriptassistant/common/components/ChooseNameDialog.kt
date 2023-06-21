@@ -5,7 +5,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChooseNameDialog(modifier: Modifier, createDialogOpen: MutableState<Boolean>, createProject: (String) -> Unit) {
     val scope = rememberCoroutineScope()

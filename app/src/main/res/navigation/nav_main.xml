@@ -34,7 +34,7 @@
         android:id="@+id/fileBrowserFragment"
         android:name="com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserFragment"
         android:label="file_browser_fragment"
-        tools:layout="@layout/file_browser_fragment" >
+       >
         <argument
             android:name="projectId"
             app:argType="long" />

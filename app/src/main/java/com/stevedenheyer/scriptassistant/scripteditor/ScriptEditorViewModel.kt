@@ -4,6 +4,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.common.domain.model.script.Line
@@ -11,6 +12,7 @@ import com.stevedenheyer.scriptassistant.common.domain.model.script.Script
 import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -29,11 +31,11 @@ class ScriptEditorViewModel @Inject constructor(
 
     private val scriptFlow = MutableStateFlow<List<ScriptLineRecyclerItemView>>(emptyList())
 
-    val scriptLines = scriptFlow.asLiveData()
+    val scriptLines = scriptFlow.asStateFlow()
 
-    val lineEditor = MutableLiveData<String>()
+    val lineEditor = MutableStateFlow("")
 
-    val currentLineIndex = MutableLiveData<Int>()
+    val currentLineIndex = MutableStateFlow(0)
 
     init {
         viewModelScope.launch {
@@ -49,10 +51,12 @@ class ScriptEditorViewModel @Inject constructor(
                 if (lines.isEmpty() || lines.last().text.isNotBlank()) {
 
                     lines.add(ScriptLineRecyclerItemView(0, lines.lastIndex + 1, ""))
+                    currentLineIndex.value = lines.size - 1
                 }
 
                 Log.d("LD", "script updating...")
                 scriptFlow.value = lines
+
             }
         }
 
@@ -75,28 +79,30 @@ class ScriptEditorViewModel @Inject constructor(
         }
     }
 
-    fun editTextWatcher(string: CharSequence, start: Int, before: Int, count: Int) {
+    fun editTextWatcher(string: String) {
         Log.d("SVM", "text: $string")
-        val lines = scriptLines.value!!.toMutableList()
-        val line = lines!!.get(currentLineIndex.value ?: 0)
-        lines.remove(line)
-        lines.add(currentLineIndex.value ?: 0, line.copy(text = string.toString()))
-        scriptFlow.value = lines
+        if (string != lineEditor.value) {
+            lineEditor.value = string
+            val lines = scriptLines.value!!.toMutableList()
+            val line = lines!!.get(currentLineIndex.value ?: 0)
+            lines.remove(line)
+            lines.add(currentLineIndex.value ?: 0, line.copy(text = string.toString()))
+            scriptFlow.value = lines
+        }
     }
 
-    fun onEditorAction(view: TextView, actionId: Int, event: KeyEvent?): Boolean {
-        if (actionId == EditorInfo.IME_ACTION_DONE) {
+    fun onEditorAction() {
+       // if (actionId == EditorInfo.IME_ACTION_DONE) {
             Log.d("SVM", "Done pressed")
             eventHandler.onEvent(EditorEvent.RequestScriptUpdate(false))
-            return true
-        }
-        return false
+         //   return true
+       // return false
     }
 
     fun onItemSelected(key: Long, selected: Boolean) {
         Log.d("SVM", "Item selected: $key, $selected")
         if (selected) {
-            scriptLines.value!!.forEach { line ->
+            scriptLines.value.forEach { line ->
                 if (line.id == key) {
                     currentLineIndex.value = line.index
                     lineEditor.value = line.text
