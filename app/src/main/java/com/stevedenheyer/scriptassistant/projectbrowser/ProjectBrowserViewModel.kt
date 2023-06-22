@@ -31,9 +31,10 @@ class ProjectBrowserViewModel @Inject internal constructor(private val projectRe
 
     fun setSelectedProject(projectId: Long) { _selectedProject.value = projectId }
 
-    fun createNewProject(name: String) = viewModelScope.launch {
-        val id = async { projectRepository.insertProject(name) }
-        eventHandler.onEvent(ProjectBrowserEvent.requestOpenProject(id.await()))
+    suspend fun createNewProject(name: String):Long {
+        val id = projectRepository.insertProject(name)
+       // eventHandler.onEvent(ProjectBrowserEvent.requestOpenProject(id.await()))
+        return id
     }
 
     fun openProject() {

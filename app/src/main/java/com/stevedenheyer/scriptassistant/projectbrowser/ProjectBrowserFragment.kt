@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,17 +18,14 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.*
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.fragment.findNavController
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.compose.ui.graphics.Color
-import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.navGraphViewModels
 import com.stevedenheyer.scriptassistant.R
-import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformRecyclerViewModel
 import com.stevedenheyer.scriptassistant.common.components.ChooseNameDialog
 import kotlinx.coroutines.launch
 
@@ -80,7 +76,7 @@ class ProjectBrowserFragment : Fragment() {
            )
         }
 
-        ChooseNameDialog(modifier = Modifier, createDialogOpen = createDialogOpen, viewModel::createNewProject)
+        //ChooseNameDialog(modifier = Modifier, createDialogOpen = createDialogOpen, viewModel::createNewProject, nav)
     }
 
     @Composable

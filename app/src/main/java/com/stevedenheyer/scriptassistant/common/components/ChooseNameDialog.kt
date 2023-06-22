@@ -4,9 +4,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.launch
+import kotlin.reflect.KSuspendFunction1
 
 @Composable
-fun ChooseNameDialog(modifier: Modifier, createDialogOpen: MutableState<Boolean>, createProject: (String) -> Unit) {
+fun ChooseNameDialog(modifier: Modifier, createDialogOpen: MutableState<Boolean>, createProject: KSuspendFunction1<String, Long>, openProject: (id:Long) -> Unit) {
     val scope = rememberCoroutineScope()
     val projectName = remember { mutableStateOf("") }
     if (createDialogOpen.value) {
@@ -17,7 +18,8 @@ fun ChooseNameDialog(modifier: Modifier, createDialogOpen: MutableState<Boolean>
             text = { OutlinedTextField(value = projectName.value, onValueChange = { projectName.value = it }) },
             confirmButton = { Button(onClick = {
                 scope.launch {
-                   createProject(projectName.value)
+                   val id = createProject(projectName.value)
+                    openProject(id)
                 }
             } ) {
                 Text(text = "Done")

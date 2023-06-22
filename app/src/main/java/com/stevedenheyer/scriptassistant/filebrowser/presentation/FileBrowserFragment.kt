@@ -112,6 +112,7 @@ class FileBrowserFragment : Fragment() {
 
     @Composable
     fun FileList(fileListFlow: Flow<List<File>>) {
+
         val fileList by fileListFlow.collectAsStateWithLifecycle(initialValue = emptyList())
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             itemsIndexed(fileList) { index, file ->

@@ -1,7 +1,6 @@
 package com.stevedenheyer.scriptassistant.audioeditor.presentation
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,23 +10,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
@@ -95,7 +88,12 @@ class AudioEditorFragment : Fragment() {
                 WaveformRecycler(modifier = Modifier.weight(3f), waveformVM = waveformRecyclerVM)
                 Script(scriptVM = scriptVM, modifier = Modifier.weight(1f).fillMaxHeight(), onNavigateToScriptEditor = { scriptId -> navController.navigate(R.id.scriptEditorFragment, bundleOf("scriptId" to scriptId)) } )
                 }
-            WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformUniverseVM, onNavigateToImport = { navController.navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId)) } )
+            WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformUniverseVM) {
+                navController.navigate(
+                    R.id.fileBrowserFragment,
+                    bundleOf("projectId" to args.projectId)
+                )
+            }
         }
     }
 

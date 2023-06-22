@@ -21,10 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.fragment.findNavController
-import com.stevedenheyer.scriptassistant.R
 import com.stevedenheyer.scriptassistant.audioeditor.components.HorizontalSlider
 import com.stevedenheyer.scriptassistant.audioeditor.components.SentenceMarkerCanvas
 import com.stevedenheyer.scriptassistant.audioeditor.components.WaveformCanvas
