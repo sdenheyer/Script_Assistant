@@ -25,6 +25,8 @@ import com.stevedenheyer.scriptassistant.filebrowser.domain.usecases.CreateNewAu
 import com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserScreen
 import com.stevedenheyer.scriptassistant.projectbrowser.ProjectBrowserScreen
 import com.stevedenheyer.scriptassistant.projectbrowser.ProjectBrowserViewModel
+import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorScreen
+import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorViewModel
 import com.stevedenheyer.scriptassistant.utils.sampleRate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -89,7 +91,7 @@ class MainActivity : AppCompatActivity() {
                                 navController.navigate(destination)
                             },
                             onNavigateToScriptEditor = { scriptId ->
-                                val destination = "scriptEditor/" + projectId.toString()
+                                val destination = "scriptEditor/" + scriptId.toString()
                                 navController.navigate(destination)
                             })
 
@@ -108,6 +110,11 @@ class MainActivity : AppCompatActivity() {
                             }
                         })
 
+                    }
+
+                    composable("scriptEditor/{scriptId}", arguments = listOf(navArgument("scriptId") {type = NavType.LongType})) { backStackEntry ->
+                        val scriptVM = hiltViewModel<ScriptEditorViewModel>()
+                        ScriptEditorScreen(scriptVM)
                     }
                 }
         }
