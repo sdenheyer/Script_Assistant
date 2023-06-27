@@ -41,7 +41,7 @@ class ScriptEditorViewModel @Inject constructor(
         viewModelScope.launch {
             getScript(scriptId).collect { script ->
                 val lines = ArrayList<ScriptLineRecyclerItemView>()
-                script.lines.forEachIndexed { index, line ->
+                script.forEachIndexed { index, line ->
                     lines.add(ScriptLineRecyclerItemView(line.id, index, line.text))
                     if (line.text.isEmpty()) {
                         currentLineIndex.value = line.index

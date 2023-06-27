@@ -28,7 +28,7 @@ import com.stevedenheyer.scriptassistant.common.components.ChooseNameDialog
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 
 @Composable
-fun ProjectBrowserScreen(viewModel:ProjectBrowserViewModel, navigateToAudioEditor: (id: Long) -> Unit) {
+fun ProjectBrowserScreen(viewModel: ProjectBrowserViewModel, navigateToAudioEditor: (id: Long) -> Unit) {
     val projectList:List<Project> by viewModel.projectList.collectAsStateWithLifecycle()
     val selectedProject:Long by viewModel.selectedProject.observeAsState(-1)
 

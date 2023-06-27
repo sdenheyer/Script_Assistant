@@ -30,7 +30,6 @@ import kotlin.math.roundToInt
 
 @Composable
 fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<Sentence>, updateSentence: (Int, Sentence) -> Unit, dragStopped: () -> Unit) {
-  //  Log.d("MRKR", "Composing...")
     val width = try {
         sentences.last().range.upper + 2
     } catch (e: NoSuchElementException) {
@@ -59,9 +58,7 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
             .graphicsLayer {
                 translationX = horizontalOffset.toFloat()
             }
-            //.absoluteOffset(horizontalOffset.dp, 0.dp)
             .fillMaxHeight()
-            //.scale(1.5F)
             .draggable(rememberDraggableState(onDelta = { delta ->
                 Log.d("MRKR", "Drag...")
                 val offset = horizontalOffset + delta.roundToInt()
@@ -105,7 +102,6 @@ fun SentenceMarkerPreview() {
         SentenceMarkerCanvas(modifier = Modifier.fillMaxSize(), sentences = sentences,
             updateSentence = { index, sentence ->
                 _sentences.update { sentences ->
-                  //  sentences[index] = sentence
                     sentences
                 }
         },

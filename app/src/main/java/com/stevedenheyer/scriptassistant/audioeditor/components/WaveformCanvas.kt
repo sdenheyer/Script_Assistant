@@ -19,8 +19,6 @@ fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
         val height = size.height / 2
         val centerY = size.center.y
 
-        //Log.d("CVS", "Canvas size: $height ${size.width}")
-
         waveform.forEachIndexed { index, byte ->
             val x = index.toFloat() / 2
             val y = centerY + (byte * height / 128F)
@@ -28,7 +26,6 @@ fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
                 start = Offset(x = x, y = centerY),
                 end = Offset(x = x, y = y),
                 color = color
-                //if (waveform.isLoading) Color.Gray else Color.Green
             )
         }
     }

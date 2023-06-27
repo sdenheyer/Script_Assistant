@@ -43,7 +43,6 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, on
         Row {
             Button(modifier = Modifier, onClick = {
                 onNavigateToImport()
-                //findNavController().navigate(R.id.fileBrowserFragment, bundleOf("projectId" to args.projectId))
             }) {
                 Text(text = "Import")
             }

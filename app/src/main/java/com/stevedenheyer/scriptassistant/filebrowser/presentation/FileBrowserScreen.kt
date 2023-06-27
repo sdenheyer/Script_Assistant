@@ -33,16 +33,9 @@ fun FileBrowserScreen(startingDir: File, onFileSelected: (File) -> Unit) {
         }
 
         if (file.isDirectory) {
-            //currentDir = file
             val fileList = file.listFiles()?.filter { !it.isHidden }?.toList() ?: emptyList()
 
             _fileListFlow.value = fileList
-            /*
-                        fileListAdapter.clear()
-                        fileListAdapter.addAll(fileList.map {
-                            it.name
-                        })
-            */
         }
     }
 
@@ -53,8 +46,6 @@ fun FileBrowserScreen(startingDir: File, onFileSelected: (File) -> Unit) {
             Text(text = file.name, fontSize = 20.sp, modifier = Modifier
                 .padding(vertical = 8.dp)
                 .selectable(true, onClick = { open(file) }))
-
-
         }
 
     }
