@@ -47,9 +47,7 @@ fun FileBrowserScreen(startingDir: File, onFileSelected: (File) -> Unit) {
                 .padding(vertical = 8.dp)
                 .selectable(true, onClick = { open(file) }))
         }
-
     }
-
 }
 
 

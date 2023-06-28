@@ -64,8 +64,9 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, on
                 onValueChanged = { value -> waveformVM.setThreshold(value)},
                 onValueChangedFinished = { waveformVM.setUserIsDoneChangingSettings() })
 
-            WaveformPageView(modifier = Modifier
-                , waveform = waveform, sentences ?: emptyList()
+            WaveformPageView(modifier = Modifier,
+                waveform = waveform,
+                sentences ?: emptyList()
             )
         }
 

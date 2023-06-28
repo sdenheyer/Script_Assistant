@@ -1,25 +1,25 @@
 package com.stevedenheyer.scriptassistant.audioeditor.viewmodels
 
- import android.util.Log
- import android.util.Range
- import androidx.lifecycle.*
+import android.util.Log
+import android.util.Range
+import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
- import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
+import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetAudioDetails
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetSettings
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetWaveformMapFlow
- import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.UpdateAudioDetails
- import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.UpdateAudioDetails
+import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
- import com.stevedenheyer.scriptassistant.utils.EventHandler
+import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
- import kotlin.coroutines.coroutineContext
- import kotlin.math.roundToInt
+import kotlin.coroutines.coroutineContext
+import kotlin.math.roundToInt
 
 data class AudioFileTabUi(
     val id: Long,
@@ -52,17 +52,20 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val currentAudioId = MutableStateFlow(0L)
 
-    val currentAudioIndex = currentAudioId.map {id ->
-        var index = 0
-        audioFileTabUiState.value.forEachIndexed { i, tab ->
-            if (tab.id == id) {
-                index = i
+    val currentAudioIndex = currentAudioId
+        .map { id ->
+            var index = 0
+            audioFileTabUiState.value.forEachIndexed { i, tab ->
+                if (tab.id == id) {
+                    index = i
+                }
             }
+            index
         }
-        index }
 
     val waveform = combine(currentAudioId, getWaveformMapFlow(projectId)) { id, map ->
-        val waveform = map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+        val waveform =
+            map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
         waveform
     }
 
@@ -74,30 +77,42 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val userIsChangingSettings = MutableStateFlow(true) //TEMP!!!
 
-    private val localEventFlow:MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
+    private val localEventFlow: MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
     private val eventFlow = eventHandler.getEventFlow()
 
-    private val generatedRanges = combine(threshold, pause, waveform) { threshold, pause, waveform ->
-        val ranges = ArrayList<Range<Int>>()
-        if (!waveform.isLoading) {
-            val findSentences = FindSentences(coroutineContext.job)
-            ranges.addAll(findSentences(threshold.roundToInt().toByte(), pause.roundToInt(), waveform.data))
-        }
-        ranges
+    private val generatedRanges =
+        combine(threshold, pause, waveform) { threshold, pause, waveform ->
+            val ranges = ArrayList<Range<Int>>()
+            if (!waveform.isLoading) {
+                val findSentences = FindSentences(coroutineContext.job)
+                ranges.addAll(
+                    findSentences(
+                        threshold.roundToInt().toByte(),
+                        pause.roundToInt(),
+                        waveform.data
+                    )
+                )
+            }
+            ranges
         }.flowOn(Dispatchers.IO).distinctUntilChanged()
 
-    val sentences = combine(currentAudioId, userIsChangingSettings, generatedRanges) { id, userIsChanging, ranges ->
+    val sentences = combine(
+        currentAudioId,
+        userIsChangingSettings,
+        generatedRanges
+    ) { id, userIsChanging, ranges ->
         if (userIsChanging) {
             val newSentenceList = ArrayList<Sentence>()
-            ranges.forEach {range ->
+            ranges.forEach { range ->
                 newSentenceList.add(Sentence(range = range, lineId = 0, take = 0))
             }
             sentencesMap[id] = newSentenceList
-           // Log.d("WUVM", "Found ${newSentenceList.size}")
+            // Log.d("WUVM", "Found ${newSentenceList.size}")
         }
         sentencesMap[id]
     }.flowOn(Dispatchers.IO).distinctUntilChanged()
+
     init {
         viewModelScope.launch {
             settingsMap.putAll(getSettings(projectId).first())
@@ -108,31 +123,43 @@ class WaveformUniverseViewModel @Inject constructor(
             combine(localEventFlow, getAudioDetails(projectId)) { event, oldDetails ->
                 Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
-                if (event is EditorEvent.RequestSentenceUpdate && !event.completed) {  //Infinite loop
-                    Log.d("WUVM", "Updating details...")
-                    val sentences = sentencesMap[id]!!.toTypedArray()
-                    val details = oldDetails[id]!!.copy(settings = Settings(threshold = threshold.value, pause = pause.value), sentences = sentences)
+                if (event is EditorEvent.RequestSentenceUpdate && !event.completed && oldDetails[id] != null) {  //Infinite loop
+
+                    val sentences = sentencesMap[id]?.toTypedArray() ?: oldDetails[id]!!.sentences
+                    Log.d("WUVM", "Updating details... ${sentences.size}")
+                    val details = oldDetails[id]!!.copy(
+                        settings = Settings(
+                            threshold = threshold.value,
+                            pause = pause.value
+                        ), sentences = sentences
+                    )
                     updateAudioDetails(projectId, details)
                     localEventFlow.value = EditorEvent.RequestSentenceUpdate(true)
 
-                    eventFlow.value = EditorEvent.RequestRecyclerUpdate(SentencesCollection(id = id, data = sentences))
+                    eventFlow.value = EditorEvent.RequestRecyclerUpdate(
+                        SentencesCollection(
+                            id = id,
+                            data = sentences
+                        )
+                    )
                 }
             }.collect()
         }
 
 
-    /*        getSettings(projectId).collect {
-                if (!settingsMap.equals(it)) {
-                    settingsMap.putAll(it)
-                    refreshSliders()
-                }
-            }*/
+        /*        getSettings(projectId).collect {
+                    if (!settingsMap.equals(it)) {
+                        settingsMap.putAll(it)
+                        refreshSliders()
+                    }
+                }*/
     }
 
     fun setCurrentAudioId(key: Long) {
         if (key != currentAudioId.value) {
             currentAudioId.value = key
             refreshSliders()
+          //  localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
         }
     }
 
