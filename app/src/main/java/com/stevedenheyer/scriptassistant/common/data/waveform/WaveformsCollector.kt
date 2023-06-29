@@ -17,28 +17,29 @@ class WaveformsCollector @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher
 ) {
 
-    private val waveformsMap = HashMap<Long, Waveform>()
+    private val waveformsArray = ArrayList<Waveform>()
 
     private val waveformsChannel = Channel<Waveform>()
 
     private val waveformsFlow =
-        MutableSharedFlow<Map<Long, Waveform>>(replay = 1)
+        MutableSharedFlow<List<Waveform>>(replay = 1)
 
     init {
         scope.launch {  while (true) {
             val waveform = waveformsChannel.receive()
             if (waveform.id >= 0) {
-                waveformsMap[waveform.id] = waveform
+                val index = waveformsArray.indexOfFirst { it.id == waveform.id }
+                waveformsArray.set(index, waveform)
             }
-            waveformsFlow.emit(waveformsMap)
+            waveformsFlow.emit(waveformsArray)
         } }
     }
 
-    fun generateWaveforms(files: Map<Long, File>):SharedFlow<Map<Long, Waveform>> {
+    fun generateWaveforms(files: Map<Long, File>):SharedFlow<List<Waveform>> {
      //   Log.d("WFMCOL", "Files: ${files.size}")
         files.forEach { file ->
-            if (!waveformsMap.containsKey(file.key)) {
-                waveformsMap[file.key] = Waveform(file.key, data = emptyArray<Byte>().toByteArray(), true)
+            if (waveformsArray.firstOrNull { it.id == file.key } == null) {
+                waveformsArray.add(Waveform(file.key, data = emptyArray<Byte>().toByteArray(), true))
              //   Log.d("WFMCOL", "Starting thread..")
                 scope.launch {
                     val getWaveform = GetWaveform(context, ioDispatcher)

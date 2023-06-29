@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.SharedFlow
 
 interface WaveformRepository {
 
-    fun getWaveformMapFlow() : SharedFlow<Map<Long, Waveform>>
+    fun getWaveformMapFlow() : SharedFlow<List<Waveform>>
 
-    fun generateWaveforms(files: Map<Long, File>) : SharedFlow<Map<Long,Waveform>>
+    fun generateWaveforms(files: Map<Long, File>) : SharedFlow<List<Waveform>>
 
 }

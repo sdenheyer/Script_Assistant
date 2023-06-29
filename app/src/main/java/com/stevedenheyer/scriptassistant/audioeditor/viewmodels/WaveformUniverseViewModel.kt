@@ -28,12 +28,12 @@ data class AudioFileTabUi(
 
 @HiltViewModel
 class WaveformUniverseViewModel @Inject constructor(
-    private val state: SavedStateHandle,
+    state: SavedStateHandle,
     private val getSettings: GetSettings,
     private val getAudioDetails: GetAudioDetails,
-    private val getWaveformMapFlow: GetWaveformMapFlow,
+    getWaveformMapFlow: GetWaveformMapFlow,
     private val updateAudioDetails: UpdateAudioDetails,
-    private val eventHandler: EventHandler<EditorEvent>,
+    eventHandler: EventHandler<EditorEvent>,
 ) : ViewModel() {
 
     private val projectId = state.get<Long>("projectId")!!
@@ -54,20 +54,17 @@ class WaveformUniverseViewModel @Inject constructor(
 
     val currentAudioIndex = currentAudioId
         .map { id ->
-            var index = 0
-            audioFileTabUiState.value.forEachIndexed { i, tab ->
-                if (tab.id == id) {
-                    index = i
-                }
+            val index = audioFileTabUiState.value.indexOfFirst { tab ->
+                tab.id == id
             }
-            index
+            if (index > -1) index else 0
         }
 
-    val waveform = combine(currentAudioId, getWaveformMapFlow(projectId)) { id, map ->
+    val waveform = combine(currentAudioId, getWaveformMapFlow(projectId)) { id, list ->
         val waveform =
-            map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+            list.find { it.id == id } ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
         waveform
-    }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
 
     private val _threshold = MutableStateFlow(0F)
     val threshold = _threshold.asStateFlow()
@@ -75,26 +72,26 @@ class WaveformUniverseViewModel @Inject constructor(
     private val _pause = MutableStateFlow(0F)
     val pause = _pause.asStateFlow()
 
-    private val userIsChangingSettings = MutableStateFlow(true) //TEMP!!!
+    private val userIsChangingSettings = MutableStateFlow(false)
 
     private val localEventFlow: MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
     private val eventFlow = eventHandler.getEventFlow()
 
     private val generatedRanges =
-        combine(threshold, pause, waveform) { threshold, pause, waveform ->
+        combineTransform(threshold, pause) { threshold, pause ->
             val ranges = ArrayList<Range<Int>>()
-            if (!waveform.isLoading) {
-                val findSentences = FindSentences(coroutineContext.job)
+            if (!waveform.value.isLoading && userIsChangingSettings.value) {
+                val findSentences = FindSentences(currentCoroutineContext().job)
                 ranges.addAll(
                     findSentences(
                         threshold.roundToInt().toByte(),
                         pause.roundToInt(),
-                        waveform.data
+                        waveform.value.data
                     )
                 )
+                emit(ranges)
             }
-            ranges
         }.flowOn(Dispatchers.IO).distinctUntilChanged()
 
     val sentences = combine(

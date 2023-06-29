@@ -28,7 +28,7 @@ class WaveformRecyclerViewModel @Inject constructor(
 
     private var audioDetailsMap:Map<Long,AudioDetails> = emptyMap()
 
-    private val waveform = getWaveformMapFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+    private val waveform = getWaveformMapFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val recyclerItems = eventHandler.getEventFlow().map {event ->
         val recyclerItemViewList = ArrayList<WaveformRecyclerItemView>()
@@ -40,7 +40,7 @@ class WaveformRecyclerViewModel @Inject constructor(
                         audioOwnerId = id,
                         text = "",
                         range = it.range,
-                        waveform = waveform.value[id]!!.data.copyOfRange(it.range.lower, it.range.upper)
+                        waveform = waveform.value.find { it.id == id }?.data?.copyOfRange(it.range.lower, it.range.upper) ?: emptyArray<Byte>().toByteArray()
                     )
                 )
             }
