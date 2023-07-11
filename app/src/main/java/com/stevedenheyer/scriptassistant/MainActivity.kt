@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.stevedenheyer.scriptassistant.audioeditor.presentation.AudioEditorScreen
+import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.GetProjectWithScript
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.ScriptViewmodel
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformRecyclerViewModel
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformUniverseViewModel
@@ -29,6 +30,7 @@ import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorScreen
 import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorViewModel
 import com.stevedenheyer.scriptassistant.utils.sampleRate
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -37,6 +39,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var createNewAudioData: CreateNewAudioData
+
+    @Inject
+    lateinit var getProjectWithScript: GetProjectWithScript
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +60,8 @@ class MainActivity : AppCompatActivity() {
         navController: NavHostController = rememberNavController(),
         startDestination: String = "projectBrowser"
     ) {
+        val scope = rememberCoroutineScope()
+
         NavHost(
             modifier = modifier,
             navController = navController,
@@ -62,20 +69,28 @@ class MainActivity : AppCompatActivity() {
         ) {
             composable("projectBrowser") {
                 val viewModel = hiltViewModel<ProjectBrowserViewModel>()
-                ProjectBrowserScreen(viewModel = viewModel, navigateToAudioEditor =  { id ->
-                    val destination = "audioEditor/" + id.toString()
-                    navController.navigate(destination) })
+                ProjectBrowserScreen(viewModel = viewModel, navigateToAudioEditor = { projectId ->
+                    scope.launch {
+                        val scriptId = getProjectWithScript(projectId).script.scriptId
+                        val destination =
+                            "audioEditor/" + projectId.toString() + "/" + scriptId.toString()
+                        navController.navigate(destination)
+                    }
+                })
             }
                 navigation(
                     startDestination = "audioEditorMain",
-                    route = "audioEditor/{projectId}",
-                    arguments = listOf(navArgument("projectId") { type = NavType.LongType})
+                    route = "audioEditor/{projectId}/{scriptId}",
+                    arguments = listOf(navArgument("projectId") { type = NavType.LongType},
+                                        navArgument("scriptId") { type = NavType.LongType}
+                    )
                 ) {
 
                     composable(
                         "audioEditorMain",
                     ) { backStackEntry ->
                         val projectId = backStackEntry.arguments?.getLong("projectId")
+                        val scriptId = backStackEntry.arguments?.getLong("scriptId")
                         val waveformRecyclerVM = hiltViewModel<WaveformRecyclerViewModel>()
                         val waveformUniverseVM = hiltViewModel<WaveformUniverseViewModel>()
                         val scriptVM = hiltViewModel<ScriptViewmodel>()
@@ -87,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                                 val destination = "fileBrowser/" + projectId.toString()
                                 navController.navigate(destination)
                             },
-                            onNavigateToScriptEditor = { scriptId ->
+                            onNavigateToScriptEditor = {
                                 val destination = "scriptEditor/" + scriptId.toString()
                                 navController.navigate(destination)
                             })
@@ -97,7 +112,6 @@ class MainActivity : AppCompatActivity() {
 
                     composable("fileBrowser/{projectId}", arguments = listOf(navArgument("projectId") { type = NavType.LongType})) { backStackEntry ->
                         val projectId = backStackEntry.arguments?.getLong("projectId")
-                        val scope = rememberCoroutineScope()
                         FileBrowserScreen(startingDir = Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_DOWNLOADS),
                         onFileSelected = { file ->

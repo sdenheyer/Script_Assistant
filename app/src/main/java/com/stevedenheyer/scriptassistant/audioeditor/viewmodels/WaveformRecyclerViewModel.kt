@@ -3,11 +3,11 @@ package com.stevedenheyer.scriptassistant.audioeditor.viewmodels
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.*
+import com.stevedenheyer.scriptassistant.scripteditor.GetScript
 import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -18,29 +18,35 @@ import javax.inject.Inject
 class WaveformRecyclerViewModel @Inject constructor(
     private val state: SavedStateHandle,
     private val eventHandler: EventHandler<EditorEvent>,
-    private val getAudioDetails: GetAudioDetails,
+ //   private val getAudioDetails: GetAudioDetails,
     private val updateAudioDetails: UpdateAudioDetails,
+    private val getScript: GetScript,
     private val getWaveformMapFlow: GetWaveformMapFlow,
   //  private val getCurrentIdFlow: GetCurrentIdFlow,
     ) : ViewModel() {
 
     private val projectId = state.get<Long>("projectId")!!
 
-    private var audioDetailsMap:Map<Long,AudioDetails> = emptyMap()
+    private val scriptId = state.get<Long>("scriptId")!!
+
+    private val audioDetailsMap:Map<Long,AudioDetails> = emptyMap()
 
     private val waveform = getWaveformMapFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val script = getScript(scriptId).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val recyclerItems = eventHandler.getEventFlow().map {event ->
         val recyclerItemViewList = ArrayList<WaveformRecyclerItemView>()
         if (event is EditorEvent.RequestRecyclerUpdate) {
             val id = event.sentences.id
-            event.sentences.data.forEach {
+            event.sentences.data.forEach {sentence ->
+                val text = script.value.find { it.id == sentence.scriptLineId }?.text ?: ""
                 recyclerItemViewList.add(
                     WaveformRecyclerItemView(
                         audioOwnerId = id,
-                        text = "",
-                        range = it.range,
-                        waveform = waveform.value.find { it.id == id }?.data?.copyOfRange(it.range.lower, it.range.upper) ?: emptyArray<Byte>().toByteArray()
+                        text = text,
+                        range = sentence.waveformRange,
+                        waveform = waveform.value.find { it.id == id }?.data?.copyOfRange(sentence.waveformRange.lower, sentence.waveformRange.upper) ?: emptyArray<Byte>().toByteArray()
                     )
                 )
             }
@@ -91,8 +97,8 @@ class WaveformRecyclerViewModel @Inject constructor(
     fun onScriptDropped(item: WaveformRecyclerItemView) {
         Log.d("RECVM", "script dropped: {$item.text}")
         val detailsToChange = audioDetailsMap[item.audioOwnerId]
-        val index = detailsToChange!!.sentences.indexOfFirst { it.range == item.range }
-        detailsToChange.sentences[index] = detailsToChange.sentences[index].copy(lineId = null)  //TODO:  and this
+        val index = detailsToChange!!.sentences.indexOfFirst { it.waveformRange == item.range }
+        detailsToChange.sentences[index] = detailsToChange.sentences[index].copy(scriptLineId = null)  //TODO:  and this
         viewModelScope.launch { updateAudioDetails(projectId, detailsToChange) }
     }
 

@@ -30,9 +30,8 @@ import com.stevedenheyer.scriptassistant.common.components.DragTarget
 import com.stevedenheyer.scriptassistant.common.components.Draggable
 
 @Composable
-fun Script(scriptVM: ScriptViewmodel, modifier: Modifier, onNavigateToScriptEditor: (scriptId: Long) -> Unit) {
+fun Script(scriptVM: ScriptViewmodel, modifier: Modifier, onNavigateToScriptEditor: () -> Unit) {
 
-    val scriptId by scriptVM.scriptId.collectAsStateWithLifecycle(initialValue = null)
     val script by scriptVM.script.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
@@ -46,7 +45,7 @@ fun Script(scriptVM: ScriptViewmodel, modifier: Modifier, onNavigateToScriptEdit
             }
       //  }
         Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = { if (scriptId != null) onNavigateToScriptEditor(scriptId!!) },
+            onClick = { onNavigateToScriptEditor() },
             content = { Text("Editor") })
     }
 }

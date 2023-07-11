@@ -4,21 +4,23 @@ import android.util.Log
 import android.util.Range
 import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetAudioDetails
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetProjectFlow
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetSettings
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.GetWaveformMapFlow
 import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.UpdateAudioDetails
+import com.stevedenheyer.scriptassistant.audioeditor.domain.usecases.UpdateProject
 import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
+import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
-import kotlin.coroutines.coroutineContext
 import kotlin.math.roundToInt
 
 data class AudioFileTabUi(
@@ -29,6 +31,8 @@ data class AudioFileTabUi(
 @HiltViewModel
 class WaveformUniverseViewModel @Inject constructor(
     state: SavedStateHandle,
+    private val getProjectFlow: GetProjectFlow,
+    private val updateProject: UpdateProject,
     private val getSettings: GetSettings,
     private val getAudioDetails: GetAudioDetails,
     getWaveformMapFlow: GetWaveformMapFlow,
@@ -38,9 +42,11 @@ class WaveformUniverseViewModel @Inject constructor(
 
     private val projectId = state.get<Long>("projectId")!!
 
+    private val projectFlow = getProjectFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, Project(-1, "", null))
+
     private val settingsMap = HashMap<Long, Settings>()
 
-    val sentencesMap = LinkedHashMap<Long, List<Sentence>>()
+    val sentencesMap = LinkedHashMap<Long, List<SentenceAudio>>()
 
     val audioFileTabUiState = getAudioDetails(projectId).map { details ->
         val tabs = ArrayList<AudioFileTabUi>()
@@ -50,12 +56,11 @@ class WaveformUniverseViewModel @Inject constructor(
         tabs.toList()
     }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
 
-    private val currentAudioId = MutableStateFlow(0L)
+    private val currentAudioId = projectFlow.map { it.selectedAudioId ?: -1 }.stateIn(viewModelScope, SharingStarted.Eagerly, -1)
 
-    val currentAudioIndex = currentAudioId
-        .map { id ->
-            val index = audioFileTabUiState.value.indexOfFirst { tab ->
-                tab.id == id
+    val currentAudioIndex = combine(currentAudioId, audioFileTabUiState) { id, tab ->
+            val index = tab.indexOfFirst { it ->
+                it.id == id
             }
             if (index > -1) index else 0
         }
@@ -100,9 +105,9 @@ class WaveformUniverseViewModel @Inject constructor(
         generatedRanges
     ) { id, userIsChanging, ranges ->
         if (userIsChanging) {
-            val newSentenceList = ArrayList<Sentence>()
+            val newSentenceList = ArrayList<SentenceAudio>()
             ranges.forEach { range ->
-                newSentenceList.add(Sentence(range = range, lineId = 0, take = 0))
+                newSentenceList.add(SentenceAudio(waveformRange = range, scriptLineId = 0, scriptTake = 0))
             }
             sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
@@ -117,7 +122,7 @@ class WaveformUniverseViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            combine(localEventFlow, getAudioDetails(projectId)) { event, oldDetails ->
+            combine(localEventFlow, getAudioDetails(projectId)) { event, oldDetails,  ->
                 Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
                 if (event is EditorEvent.RequestSentenceUpdate && !event.completed && oldDetails[id] != null) {  //Infinite loop
@@ -127,7 +132,7 @@ class WaveformUniverseViewModel @Inject constructor(
                     val details = oldDetails[id]!!.copy(
                         settings = Settings(
                             threshold = threshold.value,
-                            pause = pause.value
+                            pause = pause.value,
                         ), sentences = sentences
                     )
                     updateAudioDetails(projectId, details)
@@ -152,12 +157,9 @@ class WaveformUniverseViewModel @Inject constructor(
                 }*/
     }
 
-    fun setCurrentAudioId(key: Long) {
-        if (key != currentAudioId.value) {
-            currentAudioId.value = key
-            refreshSliders()
-          //  localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
-        }
+    fun setCurrentAudioId(key: Long) = viewModelScope.launch {
+        val project = projectFlow.value.copy(selectedAudioId = key)
+        updateProject(project)
     }
 
     fun setThreshold(value: Float) {

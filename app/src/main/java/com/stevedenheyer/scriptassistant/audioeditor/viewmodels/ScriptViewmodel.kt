@@ -22,22 +22,17 @@ import javax.inject.Inject
 @HiltViewModel
 class ScriptViewmodel @Inject constructor(
     private val state: SavedStateHandle,
-    private val getProjectWithScript: GetProjectWithScript,
+   // private val getProjectWithScript: GetProjectWithScript,
     private val getScript: GetScript) : ViewModel() {
 
-    private val projectId = state.get<Long>("projectId")!!
-
-    private val _scriptId = MutableStateFlow<Long?>(null)
-    val scriptId = _scriptId.asStateFlow()
+    private val scriptId = state.get<Long>("scriptId")!!
 
     val _script = MutableStateFlow<List<ScriptLineItemView>>(emptyList())
     val script = _script.asStateFlow()
 
     init {
         viewModelScope.launch {
-            val scriptId = getProjectWithScript(projectId).script.scriptId
-            _scriptId.value = scriptId
-            getScript(scriptId!!).collect { scriptLines ->
+            getScript(scriptId).collect { scriptLines ->
                 val linesView = scriptLines.map { scriptLine ->
                     ScriptLineItemView(id = scriptLine.id, text = scriptLine.text)
                 }

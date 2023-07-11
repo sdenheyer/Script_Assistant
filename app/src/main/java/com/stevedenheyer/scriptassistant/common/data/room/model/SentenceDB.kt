@@ -1,7 +1,7 @@
 package com.stevedenheyer.scriptassistant.common.data.room.model
 
 import android.util.Range
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 
 data class SentenceDB(
     val begin: Int,
@@ -10,8 +10,8 @@ data class SentenceDB(
     val take: Int?,
 ) {
     companion object {
-        fun fromDomain(sentence: Sentence) = SentenceDB(sentence.range.lower, sentence.range.upper, sentence.lineId, sentence.take)
+        fun fromDomain(sentence: SentenceAudio) = SentenceDB(sentence.waveformRange.lower, sentence.waveformRange.upper, sentence.scriptLineId, sentence.scriptTake)
     }
 
-    fun toDomain() = Sentence(Range(begin, end), lineId, take)
+    fun toDomain() = SentenceAudio(Range(begin, end), lineId, take)
 }

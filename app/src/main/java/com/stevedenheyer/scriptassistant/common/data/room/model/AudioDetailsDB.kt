@@ -4,7 +4,7 @@ import androidx.room.*
 import com.stevedenheyer.scriptassistant.common.data.room.model.SentenceDB
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import kotlin.math.roundToInt
 
 @Entity
@@ -32,7 +32,7 @@ data class AudioDetailsDB(
 
     fun toDomainSettings() = Settings(threshold.toFloat(), pause.toFloat())
 
-    fun toDomainSentences(): Array<Sentence> {
+    fun toDomainSentences(): Array<SentenceAudio> {
         return sentenceDBS.map {
             it.toDomain()
         }.toTypedArray()

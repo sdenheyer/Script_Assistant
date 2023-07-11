@@ -1,6 +1,5 @@
 package com.stevedenheyer.scriptassistant.common.domain.model.audio
 
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
 import java.io.File
 
 data class AudioDetails (
@@ -9,5 +8,5 @@ data class AudioDetails (
     val name: String,
     val audioFile: File,
     val settings: Settings,
-    val sentences: Array<Sentence>,
+    val sentences: Array<SentenceAudio>,
         )

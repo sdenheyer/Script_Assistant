@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -35,7 +36,7 @@ fun AudioEditorScreen(
     waveformUniverseVM: WaveformUniverseViewModel,
     scriptVM: ScriptViewmodel,
     onNavigateToImport: () -> Unit,
-    onNavigateToScriptEditor: (scriptId: Long) -> Unit
+    onNavigateToScriptEditor: () -> Unit
 ) {
     Column{
         Draggable(modifier = Modifier.weight(1f)) {
@@ -73,6 +74,7 @@ fun WaveformRecycler(modifier: Modifier, waveformVM: WaveformRecyclerViewModel) 
                 Box(modifier = Modifier
                     .horizontalScroll(rememberScrollState())
                     .background(bgColor)) {
+                    Text(text = item.text)
                     WaveformCanvas(
                         modifier = Modifier.height(90.dp),
                         waveform = item.waveform,

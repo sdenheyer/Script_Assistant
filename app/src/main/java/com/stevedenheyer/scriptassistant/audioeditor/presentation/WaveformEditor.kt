@@ -25,7 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.audioeditor.components.HorizontalSlider
 import com.stevedenheyer.scriptassistant.audioeditor.components.SentenceMarkerCanvas
 import com.stevedenheyer.scriptassistant.audioeditor.components.WaveformCanvas
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Sentence
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformUniverseViewModel
 
@@ -49,7 +49,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, on
             if (tabs.isNotEmpty()) {
                 TabRow(selectedTabIndex = currentAudioIndex) {
                     tabs.forEachIndexed { index, tab ->
-                        Tab(selected = currentAudioIndex == tab.id.toInt(),
+                        Tab(selected = currentAudioIndex == index,
                             onClick = { waveformVM.setCurrentAudioId(tab.id) },
                             text = { Text(tab.name) })
                     }
@@ -81,7 +81,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformUniverseViewModel, on
 }
 
 @Composable
-fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sentence>) {
+fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>) {
     Log.d("EDFRG", "Item: ${waveform.data.size}")
     Box(
         modifier = Modifier
