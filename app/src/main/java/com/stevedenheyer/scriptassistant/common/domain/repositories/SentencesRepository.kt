@@ -1,10 +1,9 @@
 package com.stevedenheyer.scriptassistant.common.domain.repositories
 
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.SentencesCollection
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
+import com.stevedenheyer.scriptassistant.editor.domain.model.SentencesCollection
+import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 interface SentencesRepository {
     fun getSentencesCollectionFlow() : Flow<SentencesCollection>

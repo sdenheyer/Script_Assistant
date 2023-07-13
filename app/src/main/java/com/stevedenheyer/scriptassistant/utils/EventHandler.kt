@@ -1,6 +1,5 @@
 package com.stevedenheyer.scriptassistant.utils
 
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject

@@ -8,8 +8,8 @@ import com.stevedenheyer.scriptassistant.data.AudioDetailsDB
 import com.stevedenheyer.scriptassistant.data.AudioFileDB
 import com.stevedenheyer.scriptassistant.data.ProjectAudiofilesCrossRef
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import java.io.File
 import javax.inject.Inject
 
 class AudioRepositoryImpl @Inject constructor(private val audioFilesDao: AudioFileDao,
@@ -28,9 +28,11 @@ class AudioRepositoryImpl @Inject constructor(private val audioFilesDao: AudioFi
 
     override suspend fun updateAudioDetails(audioDetailsDB: AudioDetailsDB) = audioDetailsDao.updateAudioDetails(audioDetailsDB)
 
-    override fun getAudioAggregate(id: Long): Flow<List<AudioDetails>> {
-        return audioDetailsDao.getAudioAggregate(id).map { audioAggregate ->
+    override fun getAudioAggregate(id: Long) = audioDetailsDao.getAudioAggregate(id).map { audioAggregate ->
             audioAggregate.toDomain()
         }
+
+    override fun getAudioFiles(id: Long) = audioFilesDao.getAudioFilePathsFlow(id).map {audioFileDB ->
+        audioFileDB.toDomain()
     }
 }

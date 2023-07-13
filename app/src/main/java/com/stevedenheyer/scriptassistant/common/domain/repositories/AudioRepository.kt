@@ -2,6 +2,7 @@ package com.stevedenheyer.scriptassistant.common.domain.repositories
 
 import com.stevedenheyer.scriptassistant.common.data.room.model.AudioAggregateDB
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioFile
 import com.stevedenheyer.scriptassistant.data.AudioDetailsDB
 import com.stevedenheyer.scriptassistant.data.AudioFileDB
 import com.stevedenheyer.scriptassistant.data.ProjectAudiofilesCrossRef
@@ -24,5 +25,7 @@ interface AudioRepository {
     suspend fun updateAudioDetails (audioDetailsDB: AudioDetailsDB)
 
     fun getAudioAggregate (id: Long): Flow<List<AudioDetails>>
+
+    fun getAudioFiles (id: Long): Flow<List<AudioFile>>
 
 }

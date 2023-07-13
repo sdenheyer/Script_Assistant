@@ -1,21 +1,15 @@
 package com.stevedenheyer.scriptassistant.scripteditor
 
 import android.util.Log
-import android.view.KeyEvent
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.*
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.EditorEvent
+import com.stevedenheyer.scriptassistant.editor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.common.domain.model.script.Line
-import com.stevedenheyer.scriptassistant.common.domain.model.script.Script
 import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

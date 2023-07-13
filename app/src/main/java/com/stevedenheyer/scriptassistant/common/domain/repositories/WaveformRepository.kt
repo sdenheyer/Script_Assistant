@@ -1,6 +1,6 @@
 package com.stevedenheyer.scriptassistant.common.domain.repositories
 
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
+import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import java.io.File
 import kotlinx.coroutines.flow.SharedFlow
 

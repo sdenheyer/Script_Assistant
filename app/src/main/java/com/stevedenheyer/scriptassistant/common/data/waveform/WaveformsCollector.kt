@@ -2,7 +2,7 @@ package com.stevedenheyer.scriptassistant.common.data.waveform
 
 import android.content.Context
 import com.stevedenheyer.scriptassistant.common.data.waveform.utils.WaveformState
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
+import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -63,5 +63,5 @@ class WaveformsCollector @Inject constructor(
         return waveformsFlow
     }
 
-    fun getWaveformsMapFlow() = waveformsFlow
+    fun getWaveformsMapFlow() = waveformsFlow.asSharedFlow()
 }

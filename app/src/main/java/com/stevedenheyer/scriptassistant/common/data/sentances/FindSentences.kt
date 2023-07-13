@@ -1,12 +1,8 @@
 package com.stevedenheyer.scriptassistant.common.data.sentances
 
 import android.util.Range
-import com.stevedenheyer.scriptassistant.audioeditor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.utils.millisecondsToIndex
-import com.stevedenheyer.scriptassistant.utils.sampleRate
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
-import kotlin.math.roundToInt
 
 class FindSentences constructor (private val job: Job) {
     private val syllabelLength = millisecondsToIndex(150)

@@ -17,11 +17,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.stevedenheyer.scriptassistant.audioeditor.presentation.AudioEditorScreen
-import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.GetProjectWithScript
-import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.ScriptViewmodel
-import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformRecyclerViewModel
-import com.stevedenheyer.scriptassistant.audioeditor.viewmodels.WaveformUniverseViewModel
+import com.stevedenheyer.scriptassistant.editor.presentation.AudioEditorScreen
+import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetProjectWithScript
+import com.stevedenheyer.scriptassistant.editor.viewmodels.ScriptViewmodel
+import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformRecyclerViewModel
+import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformEditorViewModel
+import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformGeneratorViewModel
 import com.stevedenheyer.scriptassistant.filebrowser.domain.usecases.CreateNewAudioData
 import com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserScreen
 import com.stevedenheyer.scriptassistant.projectbrowser.ProjectBrowserScreen
@@ -30,7 +31,6 @@ import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorScreen
 import com.stevedenheyer.scriptassistant.scripteditor.ScriptEditorViewModel
 import com.stevedenheyer.scriptassistant.utils.sampleRate
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -91,11 +91,13 @@ class MainActivity : AppCompatActivity() {
                     ) { backStackEntry ->
                         val projectId = backStackEntry.arguments?.getLong("projectId")
                         val scriptId = backStackEntry.arguments?.getLong("scriptId")
+                        val waveformGeneratorVM = hiltViewModel<WaveformGeneratorViewModel>()
                         val waveformRecyclerVM = hiltViewModel<WaveformRecyclerViewModel>()
-                        val waveformUniverseVM = hiltViewModel<WaveformUniverseViewModel>()
+                        val waveformUniverseVM = hiltViewModel<WaveformEditorViewModel>()
                         val scriptVM = hiltViewModel<ScriptViewmodel>()
 
-                        AudioEditorScreen(waveformRecyclerVM = waveformRecyclerVM,
+                        AudioEditorScreen(waveformGeneratorVM = waveformGeneratorVM,
+                            waveformRecyclerVM = waveformRecyclerVM,
                             waveformUniverseVM = waveformUniverseVM,
                             scriptVM = scriptVM,
                             onNavigateToImport = {
