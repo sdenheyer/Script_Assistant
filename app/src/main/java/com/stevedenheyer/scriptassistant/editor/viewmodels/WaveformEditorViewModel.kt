@@ -58,11 +58,11 @@ class WaveformEditorViewModel @Inject constructor(
 
     private val currentAudioId = projectFlow.map { it.selectedAudioId ?: -1 }.stateIn(viewModelScope, SharingStarted.Eagerly, -1)
 
-    val currentAudioIndex = combine(currentAudioId, audioFileTabUiState) { id, tab ->
+    val currentAudioIndex = combineTransform(currentAudioId, audioFileTabUiState) { id, tab ->
             val index = tab.indexOfFirst { it ->
                 it.id == id
             }
-            if (index > -1) index else 0
+            if (index >= 0) emit(index)
         }
 
     val waveform = combine(currentAudioId, getWaveformMapFlow()) { id, list ->
@@ -148,6 +148,15 @@ class WaveformEditorViewModel @Inject constructor(
             }.collect()
         }
 
+        viewModelScope.launch {
+            getWaveformMapFlow().collect {wfmList ->
+                if (wfmList.size == 1) {
+                    setCurrentAudioId(wfmList.first().id)
+                }
+            }
+        }
+
+
 
         /*        getSettings(projectId).collect {
                     if (!settingsMap.equals(it)) {
@@ -157,9 +166,13 @@ class WaveformEditorViewModel @Inject constructor(
                 }*/
     }
 
-    fun setCurrentAudioId(key: Long) = viewModelScope.launch {
-        val project = projectFlow.value.copy(selectedAudioId = key)
-        updateProject(project)
+    fun setCurrentAudioId(key: Long) {
+        if (key != currentAudioId.value) {
+            viewModelScope.launch {
+                val project = projectFlow.value.copy(selectedAudioId = key)
+                updateProject(project)
+            }
+        }
     }
 
     fun setThreshold(value: Float) {
