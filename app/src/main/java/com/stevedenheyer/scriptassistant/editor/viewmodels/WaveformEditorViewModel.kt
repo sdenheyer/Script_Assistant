@@ -65,9 +65,9 @@ class WaveformEditorViewModel @Inject constructor(
             if (index >= 0) emit(index)
         }
 
-    val waveform = combine(currentAudioId, getWaveformMapFlow()) { id, list ->
+    val waveform = combine(currentAudioId, getWaveformMapFlow()) { id, map ->
         val waveform =
-            list.find { it.id == id } ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+            map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
         waveform
     }.stateIn(viewModelScope, SharingStarted.Lazily, Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
 
@@ -149,9 +149,9 @@ class WaveformEditorViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            getWaveformMapFlow().collect {wfmList ->
-                if (wfmList.size == 1) {
-                    setCurrentAudioId(wfmList.first().id)
+            getWaveformMapFlow().collect {wfmMap ->
+                if (wfmMap.size == 1) {
+                    setCurrentAudioId(wfmMap.toList().first().second.id)
                 }
             }
         }

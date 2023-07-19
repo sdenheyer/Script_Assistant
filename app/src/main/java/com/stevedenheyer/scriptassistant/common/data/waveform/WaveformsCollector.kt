@@ -17,29 +17,30 @@ class WaveformsCollector @Inject constructor(
     private val ioDispatcher: CoroutineDispatcher
 ) {
 
-    private val waveformsArray = ArrayList<Waveform>()
+    private val waveformsMap = HashMap<Long, Waveform>()
 
     private val waveformsChannel = Channel<Waveform>()
 
     private val waveformsFlow =
-        MutableSharedFlow<List<Waveform>>(replay = 1)
+        MutableSharedFlow<Map<Long, Waveform>>(replay = 1)
 
     init {
         scope.launch {  while (true) {
             val waveform = waveformsChannel.receive()
             if (waveform.id >= 0) {
-                val index = waveformsArray.indexOfFirst { it.id == waveform.id }
-                waveformsArray.set(index, waveform)
+                waveformsMap[waveform.id] = waveform
+                //val index = waveformsMap.indexOfFirst { it.id == waveform.id }
+                //waveformsMap.set(index, waveform)
             }
-            waveformsFlow.emit(waveformsArray)
+            waveformsFlow.emit(waveformsMap)
         } }
     }
 
-    fun generateWaveforms(files: Map<Long, File>):SharedFlow<List<Waveform>> {
+    fun generateWaveforms(files: Map<Long, File>):SharedFlow<Map<Long, Waveform>> {
      //   Log.d("WFMCOL", "Files: ${files.size}")
         files.forEach { file ->
-            if (waveformsArray.firstOrNull { it.id == file.key } == null) {
-                waveformsArray.add(Waveform(file.key, data = emptyArray<Byte>().toByteArray(), true))
+            if (waveformsMap[file.key] == null) {
+                waveformsMap[file.key] = Waveform(file.key, data = emptyArray<Byte>().toByteArray(), true)
              //   Log.d("WFMCOL", "Starting thread..")
                 scope.launch {
                     val getWaveform = GetWaveform(context, ioDispatcher)
