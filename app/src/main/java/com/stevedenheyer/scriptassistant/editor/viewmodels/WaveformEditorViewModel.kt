@@ -14,6 +14,7 @@ import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetWaveformMapFl
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateAudioDetails
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateProject
 import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import com.stevedenheyer.scriptassistant.utils.EventHandler
@@ -44,9 +45,15 @@ class WaveformEditorViewModel @Inject constructor(
 
     private val projectFlow = getProjectFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, Project(-1, "", null))
 
+    private val currentAudioId = projectFlow.map { it.selectedAudioId ?: -1 }.stateIn(viewModelScope, SharingStarted.Eagerly, -1)
+
+    private val audioDetailsFlow = combine(currentAudioId, getAudioDetails(projectId)) { id, details ->
+        details[id]
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val settingsMap = HashMap<Long, Settings>()
 
-    val sentencesMap = LinkedHashMap<Long, List<SentenceAudio>>()
+    //val sentencesMap = LinkedHashMap<Long, List<SentenceAudio>>()
 
     val audioFileTabUiState = getAudioDetails(projectId).map { details ->
         val tabs = ArrayList<AudioFileTabUi>()
@@ -55,8 +62,6 @@ class WaveformEditorViewModel @Inject constructor(
         }
         tabs.toList()
     }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
-
-    private val currentAudioId = projectFlow.map { it.selectedAudioId ?: -1 }.stateIn(viewModelScope, SharingStarted.Eagerly, -1)
 
     val currentAudioIndex = combineTransform(currentAudioId, audioFileTabUiState) { id, tab ->
             val index = tab.indexOfFirst { it ->
@@ -71,6 +76,10 @@ class WaveformEditorViewModel @Inject constructor(
         waveform
     }.stateIn(viewModelScope, SharingStarted.Lazily, Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
 
+    val sentencesFromDB = combine(currentAudioId, audioDetailsFlow) { id, details ->
+        details?.sentences ?: emptyArray()
+    }
+
     private val _threshold = MutableStateFlow(0F)
     val threshold = _threshold.asStateFlow()
 
@@ -79,14 +88,14 @@ class WaveformEditorViewModel @Inject constructor(
 
     private val userIsChangingSettings = MutableStateFlow(false)
 
-    private val localEventFlow: MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
+   // private val localEventFlow: MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
-    private val eventFlow = eventHandler.getEventFlow()
+  //  private val eventFlow = eventHandler.getEventFlow()
 
     private val generatedRanges =
-        combineTransform(threshold, pause) { threshold, pause ->
-            val ranges = ArrayList<Range<Int>>()
+        combineTransform(threshold, pause, userIsChangingSettings) { threshold, pause, userIsChanging ->
             if (!waveform.value.isLoading && userIsChangingSettings.value) {
+                val ranges = ArrayList<Range<Int>>()
                 val findSentences = FindSentences(currentCoroutineContext().job)
                 ranges.addAll(
                     findSentences(
@@ -97,23 +106,23 @@ class WaveformEditorViewModel @Inject constructor(
                 )
                 emit(ranges)
             }
-        }.flowOn(Dispatchers.IO).distinctUntilChanged()
+        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val sentences = combine(
-        currentAudioId,
-        userIsChangingSettings,
+        sentencesFromDB,
         generatedRanges
-    ) { id, userIsChanging, ranges ->
-        if (userIsChanging) {
-            val newSentenceList = ArrayList<SentenceAudio>()
+    ) { sentences, ranges ->
+        val newSentenceList = sentences.toMutableList()
+        if (ranges.isNotEmpty()) {
+            newSentenceList.clear()
             ranges.forEach { range ->
                 newSentenceList.add(SentenceAudio(waveformRange = range, scriptLineId = 0, scriptTake = 0))
             }
-            sentencesMap[id] = newSentenceList
+            //sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
         }
-        sentencesMap[id]
-    }.flowOn(Dispatchers.IO).distinctUntilChanged()
+        newSentenceList
+    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         viewModelScope.launch {
@@ -122,6 +131,12 @@ class WaveformEditorViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            currentAudioId.collect {
+                refreshSliders()
+            }
+        }
+
+/*        viewModelScope.launch {
             combine(localEventFlow, getAudioDetails(projectId)) { event, oldDetails,  ->
                 Log.d("WUVM", "Changing ${event.toString()}")
                 val id = currentAudioId.value
@@ -146,12 +161,12 @@ class WaveformEditorViewModel @Inject constructor(
                     )
                 }
             }.collect()
-        }
+        }*/
 
         viewModelScope.launch {
             getWaveformMapFlow().collect {wfmMap ->
-                if (wfmMap.size == 1) {
-                    setCurrentAudioId(wfmMap.toList().first().second.id)
+                if (wfmMap.count() == 1) {
+                    setCurrentAudioId(wfmMap.values.first().id)
                 }
             }
         }
@@ -197,7 +212,18 @@ class WaveformEditorViewModel @Inject constructor(
 
     fun setUserIsDoneChangingSettings() {
         userIsChangingSettings.value = false
-        localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
+        //localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
+        viewModelScope.launch {
+            val details = audioDetailsFlow.value?.copy(
+                settings = Settings(
+                    threshold = threshold.value,
+                    pause = pause.value,
+                ), sentences = sentences.value.toTypedArray()
+            )
+            if (details != null) {
+                updateAudioDetails(projectId, details)
+            }
+        }
     }
 
     private fun refreshSliders() {
