@@ -58,7 +58,7 @@ fun AudioEditorScreen(
 
 @Composable
 fun WaveformRecycler(modifier: Modifier, waveformVM: WaveformRecyclerViewModel) {
-    val waveformItems:Array<WaveformRecyclerItemView> by waveformVM.getRecyclerItems().collectAsStateWithLifecycle(initialValue = emptyArray())
+    val waveformItems:Array<WaveformRecyclerItemView> by waveformVM.recyclerItems.collectAsStateWithLifecycle(initialValue = emptyArray())
     LazyColumn(modifier) {
         items(waveformItems) { item ->
             DropTarget<ScriptLineItemView>(modifier = Modifier) {

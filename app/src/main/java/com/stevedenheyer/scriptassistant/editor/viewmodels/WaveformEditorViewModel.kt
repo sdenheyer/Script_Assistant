@@ -90,7 +90,7 @@ class WaveformEditorViewModel @Inject constructor(
 
    // private val localEventFlow: MutableStateFlow<EditorEvent?> = MutableStateFlow(null)
 
-  //  private val eventFlow = eventHandler.getEventFlow()
+    private val eventFlow = eventHandler.getEventFlow()
 
     private val generatedRanges =
         combineTransform(threshold, pause, userIsChangingSettings) { threshold, pause, userIsChanging ->
@@ -212,7 +212,7 @@ class WaveformEditorViewModel @Inject constructor(
 
     fun setUserIsDoneChangingSettings() {
         userIsChangingSettings.value = false
-        //localEventFlow.value = EditorEvent.RequestSentenceUpdate(false)
+        eventFlow.update { EditorEvent.RequestRecyclerUpdate (EditorEvent.Focus.WaveformFocus(currentAudioId.value)) }
         viewModelScope.launch {
             val details = audioDetailsFlow.value?.copy(
                 settings = Settings(
