@@ -66,7 +66,7 @@ fun WaveformRecycler(modifier: Modifier, waveformVM: WaveformRecyclerViewModel) 
                 val bgColor = if (isInBound) Color.Blue else Color.White
 
                 lineItem?.let {line ->
-                    //TODO:  Update line
+                    waveformVM.onScriptDropped(item, line)
                 }
 
                 Box(modifier = Modifier

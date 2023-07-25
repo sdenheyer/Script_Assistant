@@ -131,7 +131,8 @@ class WaveformEditorViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            currentAudioId.collect {
+            currentAudioId.collect {id ->
+                eventFlow.update { EditorEvent.RequestRecyclerUpdate (EditorEvent.Focus.WaveformFocus(id)) }
                 refreshSliders()
             }
         }
