@@ -59,7 +59,7 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
                 onDrag(offset)
             }), orientation = Orientation.Horizontal,
                 onDragStopped = { dragStopped() }),
-        contentScale = ContentScale.FillBounds
+       // contentScale = ContentScale.FillBounds
     )
 }
 

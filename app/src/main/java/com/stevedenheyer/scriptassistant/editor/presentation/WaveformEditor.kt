@@ -66,7 +66,9 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
 
             WaveformPageView(modifier = Modifier,
                 waveform = waveform,
-                sentences ?: emptyList()
+                sentences = sentences,
+                updateSentence = { index, sentence -> waveformVM.setMark(index, sentence) },
+                dragStopped = { waveformVM.setUserIsDoneChangingSettings() }
             )
         }
 
@@ -81,7 +83,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
 }
 
 @Composable
-fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>) {
+fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
     Log.d("EDFRG", "Item: ${waveform.data.size}")
     Box(
         modifier = Modifier
@@ -92,7 +94,7 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
         SentenceMarkerCanvas(
             modifier = Modifier,
             sentences = sentences,
-            updateSentence = { index, sentence -> }) {
-        }
+            updateSentence = { index, sentence -> updateSentence(index, sentence) },
+            dragStopped = { dragStopped() })
     }
 }

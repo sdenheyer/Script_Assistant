@@ -108,7 +108,7 @@ class WaveformEditorViewModel @Inject constructor(
             }
         }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val sentences = combine(
+    val sentenceList = combine(
         sentencesFromDB,
         generatedRanges
     ) { sentences, ranges ->
@@ -120,6 +120,16 @@ class WaveformEditorViewModel @Inject constructor(
             }
             //sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
+        }
+        newSentenceList
+    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val sentenceInsertFlow = MutableStateFlow<Pair<Int, SentenceAudio>?>(null)
+
+    val sentences = combine (sentenceList, sentenceInsertFlow) { sentences, insert ->
+        val newSentenceList = sentences.toMutableList()
+        if (insert != null) {
+            newSentenceList[insert.first] = insert.second
         }
         newSentenceList
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -214,6 +224,7 @@ class WaveformEditorViewModel @Inject constructor(
     fun setUserIsDoneChangingSettings() {
         userIsChangingSettings.value = false
         eventFlow.update { EditorEvent.RequestRecyclerUpdate (EditorEvent.Focus.WaveformFocus(currentAudioId.value)) }
+        sentenceInsertFlow.value = null
         viewModelScope.launch {
             val details = audioDetailsFlow.value?.copy(
                 settings = Settings(
@@ -224,6 +235,12 @@ class WaveformEditorViewModel @Inject constructor(
             if (details != null) {
                 updateAudioDetails(projectId, details)
             }
+        }
+    }
+
+    fun setMark(index: Int, sentence: SentenceAudio) {
+        sentenceInsertFlow.update {
+            Pair(index, sentence)
         }
     }
 
