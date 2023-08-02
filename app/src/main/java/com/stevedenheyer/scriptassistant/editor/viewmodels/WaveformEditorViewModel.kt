@@ -1,11 +1,9 @@
 package com.stevedenheyer.scriptassistant.editor.viewmodels
 
-import android.util.Log
 import android.util.Range
 import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.editor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
-import com.stevedenheyer.scriptassistant.editor.domain.model.SentencesCollection
 import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetAudioDetails
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetProjectFlow
@@ -14,7 +12,6 @@ import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetWaveformMapFl
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateAudioDetails
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateProject
 import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
-import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import com.stevedenheyer.scriptassistant.utils.EventHandler
@@ -112,15 +109,22 @@ class WaveformEditorViewModel @Inject constructor(
         sentencesFromDB,
         generatedRanges
     ) { sentences, ranges ->
-        val newSentenceList = sentences.toMutableList()
-        if (ranges.isNotEmpty()) {
-            newSentenceList.clear()
-            ranges.forEach { range ->
+
+        val newSentenceList = sentences.filter {
+            it.isLocked
+        }.toMutableList()
+        val rangesWithoutLocked = ranges.filter { range ->
+            var disjointFromAllLocked = true
+            newSentenceList.forEach { sentence ->
+                disjointFromAllLocked = !(range.contains(sentence.waveformRange.upper) || range.contains(sentence.waveformRange.lower) || sentence.waveformRange.contains(range))
+            }
+            disjointFromAllLocked
+        }
+            rangesWithoutLocked.forEach { range ->
                 newSentenceList.add(SentenceAudio(waveformRange = range, scriptLineId = 0, scriptTake = 0))
             }
             //sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
-        }
         newSentenceList
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -129,7 +133,7 @@ class WaveformEditorViewModel @Inject constructor(
     val sentences = combine (sentenceList, sentenceInsertFlow) { sentences, insert ->
         val newSentenceList = sentences.toMutableList()
         if (insert != null) {
-            newSentenceList[insert.first] = insert.second
+            newSentenceList[insert.first] = insert.second.copy(isLocked = true)
         }
         newSentenceList
     }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

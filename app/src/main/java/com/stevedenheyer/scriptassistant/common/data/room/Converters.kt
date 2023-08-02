@@ -15,6 +15,7 @@ class Converters {
             val jsonObject = JSONObject()
             jsonObject.put("begin", sentance.begin)
             jsonObject.put("end", sentance.end)
+            jsonObject.put("is_locked", sentance.isLocked)
             jsonObject.put("line_id", sentance.lineId)
             jsonObject.put("take", sentance.take)
             jsonArray.put(jsonObject)
@@ -35,6 +36,7 @@ class Converters {
             val sentance = SentenceDB(
                 jsonObject.optInt("begin"),
                 jsonObject.optInt("end"),
+                jsonObject.optBoolean("is_locked"),
                 jsonObject.optLong("line_id"),
                 jsonObject.optInt("take")
             )
