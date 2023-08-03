@@ -14,9 +14,17 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
@@ -29,18 +37,88 @@ fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, upda
     } catch (e: NoSuchElementException) {
         0
     }
-    Box(modifier.width(width.dp)) {
+
+    val painterIn = key(R.drawable.ic_baseline_mark_in_24) { painterResource(id = R.drawable.ic_baseline_mark_in_24) }
+    val painterOut = key(R.drawable.ic_baseline_mark_out_24) { painterResource(id = R.drawable.ic_baseline_mark_out_24) }
+    BoxWithConstraints(
+        modifier = modifier
+            .width(width.dp)
+            .fillMaxHeight()
+            .graphicsLayer {
+              //  scaleY = size.height / painterIn.intrinsicSize.height
+            },
+        propagateMinConstraints = true) {
+
+        val markIn = remember {
+            MarkIn(minHeight)
+        }
+        val markOut = remember {
+            MarkOut(minHeight)
+        }
         sentences.forEachIndexed { index, sentence ->
-                MarkIn(modifier = Modifier,
+                Marker(modifier = Modifier,
+                    painter = markIn,
                     horizontalOffset = sentence.waveformRange.lower ,
                     onDrag = { offset -> updateSentence(index, sentence.copy(Range(offset, sentence.waveformRange.upper))) },
                     dragStopped = dragStopped)
-                MarkOut(modifier = Modifier,
+                Marker(modifier = Modifier,
+                    painter = markOut,
                     horizontalOffset = sentence.waveformRange.upper,
                     onDrag = { offset -> updateSentence(index, sentence.copy(Range(sentence.waveformRange.lower, offset))) },
                     dragStopped = dragStopped)
         }
     }
+}
+
+class MarkIn (val heightInDp: Dp) :Painter() {
+    var height: Float = heightInDp.value
+    override val intrinsicSize: Size
+        get() = Size(12f, height)
+
+    override fun DrawScope.onDraw() {
+        height = heightInDp.toPx()
+        drawLine(
+            start = Offset(0f, height),
+            end = Offset(0f, 0f),
+            color = Color.Black,
+            strokeWidth = 6f
+        )
+        drawLine(
+            start = Offset(0f, 0f),
+            end = Offset(12F, 0f),
+            color = Color.Black,
+            strokeWidth = 6f
+        )
+        drawLine(
+            start = Offset(0f, height),
+            end = Offset(12F, height),
+            color = Color.Black,
+            strokeWidth = 6f
+        )
+    }
+}
+
+    class MarkOut (val heightInDp: Dp) :Painter() {
+        var height: Float = heightInDp.value
+        override val intrinsicSize: Size
+            get() = Size(12f, height)
+        override fun DrawScope.onDraw() {
+            height = heightInDp.toPx()
+            drawLine(start = Offset(12f, height),
+                end = Offset(12f, 0f),
+                color = Color.Black,
+                strokeWidth = 6f
+            )
+            drawLine(start = Offset(0f, 0f),
+                end = Offset(12F, 0f),
+                color = Color.Black,
+                strokeWidth = 6f)
+            drawLine(start = Offset(0f, height),
+                end = Offset(12F, height),
+                color = Color.Black,
+                strokeWidth = 6f)
+        }
+
 }
 
 @Composable
@@ -52,7 +130,8 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
             .graphicsLayer {
                 translationX = horizontalOffset.toFloat()
             }
-            .fillMaxHeight()
+            .wrapContentWidth(align = Alignment.Start)
+            //.fillMaxHeight()
             .draggable(rememberDraggableState(onDelta = { delta ->
                 Log.d("MRKR", "Drag...")
                 val offset = horizontalOffset + delta.roundToInt()
@@ -64,7 +143,7 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
 }
 
 
-@Composable
+/*@Composable
 fun MarkIn(modifier: Modifier, horizontalOffset: Int, onDrag: (Int) -> Unit, dragStopped: () -> Unit) {
     Marker(
         modifier = modifier,
@@ -82,7 +161,7 @@ fun MarkOut(modifier: Modifier, horizontalOffset: Int, onDrag: (Int) -> Unit, dr
         horizontalOffset = horizontalOffset,
         onDrag = onDrag,
         dragStopped = dragStopped)
-}
+}*/
 
 @Preview
 @Composable
