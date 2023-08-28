@@ -1,4 +1,4 @@
-package com.stevedenheyer.scriptassistant.common.data.waveform
+package com.stevedenheyer.scriptassistant.audio
 
 import android.media.*
 import android.util.Log
@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.*
 import java.io.*
 import java.lang.Exception
 import java.nio.ByteOrder
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
-class Decoder(
-    //private val sampleOutputFlow: MutableStateFlow<ShortArray?>
-    )  {
+class Decoder  {
     private val sampleOutputFlow = MutableStateFlow<ShortArray?>(ShortArray(0))
     private lateinit var extractor: MediaExtractor
     private lateinit var decoder: MediaCodec
@@ -18,7 +18,7 @@ class Decoder(
 
     var extractorDone = false
 
-    suspend operator fun invoke(file: File):Flow<ShortArray?> {
+    operator fun invoke(file: File):Long {
         var sampleCount = 0
         extractorDone = false
         extractor = MediaExtractor()
@@ -31,7 +31,6 @@ class Decoder(
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
 
         var channel = 0  //TODO:  Make decoder handle stereo files properly, reject higher channels
         (0 until extractor.trackCount).forEach { trackNumber ->
@@ -55,6 +54,8 @@ class Decoder(
         if (format == null) {
             Log.wtf("TEMP", "format is null??")
         }
+
+        val projectedSize = (format!!.getLong(MediaFormat.KEY_DURATION) / 1e-6 * sampleRate).roundToLong()
 
         decoder = MediaCodec.createByCodecName(MediaCodecList(MediaCodecList.ALL_CODECS).findDecoderForFormat(format))
 
@@ -116,6 +117,8 @@ class Decoder(
 
         decoder.start()
 
-        return sampleOutputFlow
+        return projectedSize
     }
+
+    fun getSampleFlow() = sampleOutputFlow
 }

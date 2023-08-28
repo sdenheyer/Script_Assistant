@@ -1,6 +1,8 @@
 package com.stevedenheyer.scriptassistant.editor.presentation
 
 import android.util.Log
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
@@ -18,8 +21,16 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.editor.components.HorizontalSlider
@@ -28,6 +39,9 @@ import com.stevedenheyer.scriptassistant.editor.components.WaveformCanvas
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformEditorViewModel
+import java.lang.Float.max
+import java.lang.Float.min
+import kotlin.math.roundToInt
 
 @Composable
 fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit) {
@@ -85,9 +99,23 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
 @Composable
 fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
     Log.d("EDFRG", "Item: ${waveform.data.size}")
+    var scale by remember { mutableStateOf(1f) }
+    var offsetX by remember { mutableStateOf(0f) }
+    val state = rememberTransformableState() { scaleChange, offsetChange, _ ->
+        scale *= scaleChange
+        offsetX = min(offsetX + offsetChange.x, 0f)
+    }
     Box(
         modifier = Modifier
-            .horizontalScroll(rememberScrollState())
+            .clipToBounds()
+            .transformable(state = state)
+           // .offset { IntOffset(offsetX.roundToInt(), 0) }
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = scale
+                translationX = offsetX
+            }
+            //.horizontalScroll(rememberScrollState())
     ) {
         val color = if (waveform.isLoading) Color.Gray else Color.Green
         WaveformCanvas(modifier = Modifier.fillMaxHeight(), waveform = waveform.data, color = color)

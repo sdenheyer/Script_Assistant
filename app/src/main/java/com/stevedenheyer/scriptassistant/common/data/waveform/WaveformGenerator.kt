@@ -16,9 +16,11 @@ class WaveformGenerator  {
     private lateinit var fileOutputStream: FileOutputStream
     private val byteList = ArrayList<Byte>()
 
-    operator fun invoke(id: Long, wfmFile: File, sampleInputFlow: Flow<ShortArray?>):Flow<WaveformState> {
+    operator fun invoke(id: Long, projectedSamples: Long, wfmFile: File, sampleInputFlow: Flow<ShortArray?>):Flow<WaveformState> {
 
         fileOutputStream = FileOutputStream(wfmFile)
+
+        val projectedSize = (projectedSamples / WFM_WINDOW_SIZE).toInt()
 
         return sampleInputFlow.transform { samples ->
 
@@ -44,9 +46,9 @@ class WaveformGenerator  {
                         }
                     }
                    // Log.d("TEMP", "wfm emitted $byteList")
-                    emit(WaveformState.Loading(GenWaveform(id, byteList.toByteArray())))
+                    emit(WaveformState.Loading(GenWaveform(id, projectedSize, byteList.toByteArray())))
                 } else {
-                    emit(WaveformState.Success(GenWaveform(id, byteList.toByteArray())))
+                    emit(WaveformState.Success(GenWaveform(id, projectedSize, byteList.toByteArray())))
                     close()
                     //cancel()
                 }

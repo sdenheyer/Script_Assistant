@@ -16,7 +16,7 @@ class GetWaveformFromFile {
                 it.readFully(bytes)
                 it.close()
                 Log.d("TEMP", "sending cache file: ${bytes.size}")
-                return WaveformState.Success(GenWaveform(id, bytes))
+                return WaveformState.Success(GenWaveform(id, bytes.size, bytes))
             }
         } else {
             return WaveformState.Failure("File not found")

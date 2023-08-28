@@ -43,10 +43,7 @@ fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, upda
     BoxWithConstraints(
         modifier = modifier
             .width(width.dp)
-            .fillMaxHeight()
-            .graphicsLayer {
-              //  scaleY = size.height / painterIn.intrinsicSize.height
-            },
+            .fillMaxHeight(),
         propagateMinConstraints = true) {
 
         val markIn = remember {

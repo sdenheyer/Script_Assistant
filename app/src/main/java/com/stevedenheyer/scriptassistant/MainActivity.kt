@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
 
                         AudioEditorScreen(waveformGeneratorVM = waveformGeneratorVM,
                             waveformRecyclerVM = waveformRecyclerVM,
-                            waveformUniverseVM = waveformUniverseVM,
+                            waveformEditorVM = waveformUniverseVM,
                             scriptVM = scriptVM,
                             onNavigateToImport = {
                                 val destination = "fileBrowser/" + projectId.toString()

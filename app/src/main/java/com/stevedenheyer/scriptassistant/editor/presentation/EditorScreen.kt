@@ -31,7 +31,7 @@ import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformGeneratorView
 fun AudioEditorScreen(
     waveformGeneratorVM: WaveformGeneratorViewModel,
     waveformRecyclerVM: WaveformRecyclerViewModel,
-    waveformUniverseVM: WaveformEditorViewModel,
+    waveformEditorVM: WaveformEditorViewModel,
     scriptVM: ScriptViewmodel,
     onNavigateToImport: () -> Unit,
     onNavigateToScriptEditor: () -> Unit
@@ -52,7 +52,7 @@ fun AudioEditorScreen(
                 )
             }
         }
-        WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformUniverseVM, onNavigateToImport = onNavigateToImport )
+        WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformEditorVM, onNavigateToImport = onNavigateToImport )
     }
 }
 
