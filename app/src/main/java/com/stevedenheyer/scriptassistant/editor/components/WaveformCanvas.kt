@@ -34,7 +34,7 @@ fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
 @Composable
 fun waveformPreview() {
     val dummyData = ByteArray(100) { (Random.nextInt(-128, 128)).toByte() }
-    val waveform = Waveform(id = 0, data = dummyData, isLoading = true)
+    val waveform = Waveform(id = 0, data = dummyData, size = dummyData.size / 2, isLoading = true)
 
     Box(modifier = Modifier.height(100.dp).wrapContentWidth()) {
         WaveformCanvas(modifier = Modifier, waveform = dummyData, color = Color.Gray)

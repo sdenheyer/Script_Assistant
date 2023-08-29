@@ -69,9 +69,9 @@ class WaveformEditorViewModel @Inject constructor(
 
     val waveform = combine(currentAudioId, getWaveformMapFlow()) { id, map ->
         val waveform =
-            map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true)
+            map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), 0, isLoading = true)
         waveform
-    }.stateIn(viewModelScope, SharingStarted.Lazily, Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
+    }.stateIn(viewModelScope, SharingStarted.Lazily, Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), 0, isLoading = true))
 
     val sentencesFromDB = combine(currentAudioId, audioDetailsFlow) { id, details ->
         details?.sentences ?: emptyArray()

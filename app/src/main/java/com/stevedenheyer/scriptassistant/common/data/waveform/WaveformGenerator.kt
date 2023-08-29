@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.*
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 const val WFM_WINDOW_SIZE = 90
 
@@ -20,7 +21,7 @@ class WaveformGenerator  {
 
         fileOutputStream = FileOutputStream(wfmFile)
 
-        val projectedSize = (projectedSamples / WFM_WINDOW_SIZE).toInt()
+        val projectedSize = (projectedSamples / (WFM_WINDOW_SIZE * 2f)).roundToInt()
 
         return sampleInputFlow.transform { samples ->
 

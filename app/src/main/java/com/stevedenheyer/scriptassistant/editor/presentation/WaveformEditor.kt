@@ -3,17 +3,15 @@ package com.stevedenheyer.scriptassistant.editor.presentation
 import android.util.Log
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
@@ -26,11 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.editor.components.HorizontalSlider
@@ -41,12 +37,11 @@ import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformEditorViewModel
 import java.lang.Float.max
 import java.lang.Float.min
-import kotlin.math.roundToInt
 
 @Composable
 fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit) {
 
-    val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), isLoading = true))
+    val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
     val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
     val pause by waveformVM.pause.collectAsStateWithLifecycle(initialValue = 0F)
     val threshold by waveformVM.threshold.collectAsStateWithLifecycle(initialValue = 0F)
@@ -98,31 +93,46 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
 
 @Composable
 fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
-    Log.d("EDFRG", "Item: ${waveform.data.size}")
-    var scale by remember { mutableStateOf(1f) }
-    var offsetX by remember { mutableStateOf(0f) }
-    val state = rememberTransformableState() { scaleChange, offsetChange, _ ->
-        scale *= scaleChange
-        offsetX = min(offsetX + offsetChange.x, 0f)
-    }
-    Box(
-        modifier = Modifier
-            .clipToBounds()
-            .transformable(state = state)
-           // .offset { IntOffset(offsetX.roundToInt(), 0) }
-            .graphicsLayer {
-                transformOrigin = TransformOrigin(0f, 0f)
-                scaleX = scale
-                translationX = offsetX
-            }
+    //Log.d("EDR", "Item: ${waveform.data.size}")
+        var maxScale = 1f
+        var width = 1f
+        var scale by remember { mutableStateOf(1f) }
+        var offsetX by remember { mutableStateOf(0f) }
+        val state = rememberTransformableState() { scaleChange, offsetChange, _ ->
+            scale = max(scaleChange * scale, maxScale)
+            offsetX = max(min(offsetX + offsetChange.x, 0f), -(waveform.size ?: 0) * scale + width)
+           // Log.d("EDR", "scale $scale offset $offsetX")
+        }
+        BoxWithConstraints(
+            modifier = modifier.fillMaxSize()
+                .clipToBounds()
+                .transformable(state = state)
+                // .offset { IntOffset(offsetX.roundToInt(), 0) }
+                .graphicsLayer {
+
+                    transformOrigin = TransformOrigin(0f, 0f)
+                    scaleX = scale
+                    translationX = offsetX
+                }
+
             //.horizontalScroll(rememberScrollState())
-    ) {
-        val color = if (waveform.isLoading) Color.Gray else Color.Green
-        WaveformCanvas(modifier = Modifier.fillMaxHeight(), waveform = waveform.data, color = color)
-        SentenceMarkerCanvas(
-            modifier = Modifier,
-            sentences = sentences,
-            updateSentence = { index, sentence -> updateSentence(index, sentence) },
-            dragStopped = { dragStopped() })
+        ) {
+            width = constraints.maxWidth.toFloat()
+            maxScale = constraints.maxWidth / (waveform.size ?: 0).toFloat()
+            scale = maxScale
+           // Log.d("EDR", "minscale $maxScale width ${constraints.maxWidth}")
+
+
+            val color = if (waveform.isLoading) Color.Gray else Color.Green
+            WaveformCanvas(
+                modifier = Modifier.fillMaxHeight(),
+                waveform = waveform.data,
+                color = color
+            )
+            SentenceMarkerCanvas(
+                modifier = Modifier,
+                sentences = sentences,
+                updateSentence = { index, sentence -> updateSentence(index, sentence) },
+                dragStopped = { dragStopped() })
     }
 }

@@ -55,7 +55,7 @@ class Decoder  {
             Log.wtf("TEMP", "format is null??")
         }
 
-        val projectedSize = (format!!.getLong(MediaFormat.KEY_DURATION) / 1e-6 * sampleRate).roundToLong()
+        val projectedSize = (format!!.getLong(MediaFormat.KEY_DURATION) * 1e-6 * sampleRate).roundToLong()
 
         decoder = MediaCodec.createByCodecName(MediaCodecList(MediaCodecList.ALL_CODECS).findDecoderForFormat(format))
 

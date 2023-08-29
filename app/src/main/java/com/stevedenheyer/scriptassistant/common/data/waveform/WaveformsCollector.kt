@@ -40,7 +40,7 @@ class WaveformsCollector @Inject constructor(
      //   Log.d("WFMCOL", "Files: ${files.size}")
         files.forEach { file ->
             if (waveformsMap[file.key] == null) {
-                waveformsMap[file.key] = Waveform(file.key, data = emptyArray<Byte>().toByteArray(), true)
+                waveformsMap[file.key] = Waveform(file.key, data = emptyArray<Byte>().toByteArray(), 0,true)
              //   Log.d("WFMCOL", "Starting thread..")
                 scope.launch {
                     val getWaveform = GetWaveform(context, ioDispatcher)
@@ -49,12 +49,12 @@ class WaveformsCollector @Inject constructor(
                             when (state) {
                                 is WaveformState.Success -> {
                                // Log.d("WFMCOL", "Success!")
-                                        Waveform (state.data.id, state.data.data, false)
+                                        Waveform (state.data.id, state.data.data, state.data.projectedSize, false)
                             }
                                 is WaveformState.Loading ->
-                                    Waveform(state.data.id, state.data.data, true)
+                                    Waveform(state.data.id, state.data.data, state.data.projectedSize, true)
                                 else ->
-                                    Waveform(-1, emptyArray<Byte>().toByteArray(), false)
+                                    Waveform(-1, emptyArray<Byte>().toByteArray(), 0, false)
                             })
                     }
                 }
