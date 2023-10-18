@@ -1,20 +1,29 @@
 package com.stevedenheyer.scriptassistant.editor.presentation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.editor.components.WaveformCanvas
@@ -36,23 +45,39 @@ fun AudioEditorScreen(
     onNavigateToImport: () -> Unit,
     onNavigateToScriptEditor: () -> Unit
 ) {
-    Column{
-        Draggable(modifier = Modifier.weight(1f)) {
-            Row(modifier = Modifier) {
-                WaveformRecycler(
-                    modifier = Modifier.weight(3f),
-                    waveformVM = waveformRecyclerVM)
+    BoxWithConstraints(modifier = Modifier) {
 
-                Script(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    scriptVM = scriptVM,
-                    onNavigateToScriptEditor = onNavigateToScriptEditor
-                )
+        val heightPx = with(LocalDensity.current) { maxHeight.toPx() }
+        var wfmEditorHeightPx by remember { mutableStateOf(  heightPx / 2)  }
+        val wfmEditorHeight = with(LocalDensity.current) { wfmEditorHeightPx.toDp() }
+        val wfmHeightDraggableState = rememberDraggableState(onDelta = {
+            wfmEditorHeightPx += it
+        })
+
+        Column(modifier = Modifier) {
+            Draggable(modifier = Modifier.weight(1f)) {
+                Row(modifier = Modifier) {
+                    WaveformRecycler(
+                        modifier = Modifier.weight(3f),
+                        waveformVM = waveformRecyclerVM
+                    )
+
+                    Script(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        scriptVM = scriptVM,
+                        onNavigateToScriptEditor = onNavigateToScriptEditor
+                    )
+                }
             }
+            WaveformEditor(
+                modifier = Modifier.height(wfmEditorHeight),
+                waveformVM = waveformEditorVM,
+                onNavigateToImport = onNavigateToImport,
+                draggableState = wfmHeightDraggableState
+            )
         }
-        WaveformEditor(modifier = Modifier.weight(1f), waveformVM = waveformEditorVM, onNavigateToImport = onNavigateToImport )
     }
 }
 

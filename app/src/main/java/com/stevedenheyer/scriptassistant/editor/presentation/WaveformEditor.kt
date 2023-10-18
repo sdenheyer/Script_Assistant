@@ -1,17 +1,24 @@
 package com.stevedenheyer.scriptassistant.editor.presentation
 
 import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.DraggableState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
@@ -22,13 +29,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.stevedenheyer.scriptassistant.R
 import com.stevedenheyer.scriptassistant.editor.components.HorizontalSlider
 import com.stevedenheyer.scriptassistant.editor.components.SentenceMarkerCanvas
 import com.stevedenheyer.scriptassistant.editor.components.WaveformCanvas
@@ -39,7 +50,7 @@ import java.lang.Float.max
 import java.lang.Float.min
 
 @Composable
-fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit) {
+fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit, draggableState: DraggableState) {
 
     val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
     val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -49,14 +60,14 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
     val tabs by waveformVM.audioFileTabUiState.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
-        Row {
+        Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier) {
             Button(modifier = Modifier, onClick = {
                 onNavigateToImport()
             }) {
                 Text(text = "Import")
             }
             if (tabs.isNotEmpty()) {
-                TabRow(selectedTabIndex = currentAudioIndex) {
+                TabRow(selectedTabIndex = currentAudioIndex, modifier = Modifier.weight(1f)) {
                     tabs.forEachIndexed { index, tab ->
                         Tab(selected = currentAudioIndex == index,
                             onClick = { waveformVM.setCurrentAudioId(tab.id) },
@@ -64,6 +75,11 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
                     }
                 }
             }
+            Image(
+                modifier = Modifier.draggable(draggableState, Orientation.Vertical, reverseDirection = true),
+                painter = painterResource(R.drawable.baseline_unfold_more_24),
+                contentDescription = "",
+                alignment = Alignment.Center)
         }
 
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -98,13 +114,13 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
         var width = 1f
         var scale by remember { mutableStateOf(1f) }
         var offsetX by remember { mutableStateOf(0f) }
-        val state = rememberTransformableState() { scaleChange, offsetChange, _ ->
+        val state = rememberTransformableState { scaleChange, offsetChange, _ ->
             scale = max(scaleChange * scale, maxScale)
             offsetX = max(min(offsetX + offsetChange.x, 0f), -(waveform.size ?: 0) * scale + width)
            // Log.d("EDR", "scale $scale offset $offsetX")
         }
         BoxWithConstraints(
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
                 .clipToBounds()
                 .transformable(state = state)
                 // .offset { IntOffset(offsetX.roundToInt(), 0) }
@@ -125,7 +141,7 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
 
             val color = if (waveform.isLoading) Color.Gray else Color.Green
             WaveformCanvas(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier,
                 waveform = waveform.data,
                 color = color
             )
