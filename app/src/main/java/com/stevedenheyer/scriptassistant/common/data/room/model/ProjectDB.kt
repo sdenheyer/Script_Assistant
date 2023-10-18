@@ -10,20 +10,22 @@ import com.stevedenheyer.scriptassistant.common.domain.model.script.Script
 data class ProjectDB(
     val name: String,
     @PrimaryKey(autoGenerate = true) var projectId: Long = 0,
-    val selectedAudioId: Long?
+    val selectedAudioId: Long?,
+    val editorHeight: Float?,
 ) {
        companion object {
         fun fromProjectDomain(project: Project): ProjectDB {
             return ProjectDB(
                 projectId = project.id,
                 name = project.name,
-                selectedAudioId = project.selectedAudioId
+                selectedAudioId = project.selectedAudioId,
+                editorHeight = project.editorHeight,
             )
         }
     }
 
     fun toProjectDomain(): Project {
-        return Project(id = projectId, name = name, selectedAudioId = selectedAudioId)
+        return Project(id = projectId, name = name, selectedAudioId = selectedAudioId, editorHeight = editorHeight)
     }
 
 }

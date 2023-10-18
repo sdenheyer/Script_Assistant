@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Tab
@@ -50,7 +51,7 @@ import java.lang.Float.max
 import java.lang.Float.min
 
 @Composable
-fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit, draggableState: DraggableState) {
+fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit, draggableState: DraggableState, onDragFinished: () -> Unit) {
 
     val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
     val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
@@ -60,7 +61,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
     val tabs by waveformVM.audioFileTabUiState.collectAsStateWithLifecycle(initialValue = emptyList())
 
     Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
-        Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier) {
+        Row (horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Button(modifier = Modifier, onClick = {
                 onNavigateToImport()
             }) {
@@ -76,7 +77,8 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
                 }
             }
             Image(
-                modifier = Modifier.draggable(draggableState, Orientation.Vertical, reverseDirection = true),
+                modifier = Modifier
+                    .draggable(draggableState, Orientation.Vertical, reverseDirection = true, onDragStopped = { onDragFinished() }),
                 painter = painterResource(R.drawable.baseline_unfold_more_24),
                 contentDescription = "",
                 alignment = Alignment.Center)

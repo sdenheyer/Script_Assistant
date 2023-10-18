@@ -22,7 +22,7 @@ import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetProjectWithSc
 import com.stevedenheyer.scriptassistant.editor.viewmodels.ScriptViewmodel
 import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformRecyclerViewModel
 import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformEditorViewModel
-import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformGeneratorViewModel
+import com.stevedenheyer.scriptassistant.editor.viewmodels.ProjectViewModel
 import com.stevedenheyer.scriptassistant.filebrowser.domain.usecases.CreateNewAudioData
 import com.stevedenheyer.scriptassistant.filebrowser.presentation.FileBrowserScreen
 import com.stevedenheyer.scriptassistant.projectbrowser.ProjectBrowserScreen
@@ -91,12 +91,12 @@ class MainActivity : AppCompatActivity() {
                     ) { backStackEntry ->
                         val projectId = backStackEntry.arguments?.getLong("projectId")
                         val scriptId = backStackEntry.arguments?.getLong("scriptId")
-                        val waveformGeneratorVM = hiltViewModel<WaveformGeneratorViewModel>()
+                        val waveformGeneratorVM = hiltViewModel<ProjectViewModel>()
                         val waveformRecyclerVM = hiltViewModel<WaveformRecyclerViewModel>()
                         val waveformUniverseVM = hiltViewModel<WaveformEditorViewModel>()
                         val scriptVM = hiltViewModel<ScriptViewmodel>()
 
-                        AudioEditorScreen(waveformGeneratorVM = waveformGeneratorVM,
+                        AudioEditorScreen(projectVM = waveformGeneratorVM,
                             waveformRecyclerVM = waveformRecyclerVM,
                             waveformEditorVM = waveformUniverseVM,
                             scriptVM = scriptVM,

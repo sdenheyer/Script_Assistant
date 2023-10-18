@@ -15,7 +15,7 @@ import javax.inject.Inject
 class ProjectRepositoryImpl @Inject constructor(private val projectDao: ProjectDao) : ProjectRepository {
 
     override suspend fun insertProject(name: String) : Long {
-        val projectId = projectDao.insertProject(ProjectDB(name = name, selectedAudioId = null))
+        val projectId = projectDao.insertProject(ProjectDB(name = name, selectedAudioId = null, editorHeight = null))
         projectDao.insertScript(ScriptDB(projectOwnerId = projectId))
         return projectId
     }

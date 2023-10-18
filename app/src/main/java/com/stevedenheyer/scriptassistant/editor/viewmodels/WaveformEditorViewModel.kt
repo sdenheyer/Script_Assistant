@@ -40,7 +40,7 @@ class WaveformEditorViewModel @Inject constructor(
 
     private val projectId = state.get<Long>("projectId")!!
 
-    private val projectFlow = getProjectFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, Project(-1, "", null))
+    private val projectFlow = getProjectFlow(projectId).stateIn(viewModelScope, SharingStarted.Eagerly, Project(-1, "", null, null))
 
     private val currentAudioId = projectFlow.map { it.selectedAudioId ?: -1 }.stateIn(viewModelScope, SharingStarted.Eagerly, -1)
 
