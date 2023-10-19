@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -26,7 +27,11 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableFloatState
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,8 +58,7 @@ import java.lang.Float.min
 @Composable
 fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNavigateToImport: () -> Unit, draggableState: DraggableState, onDragFinished: () -> Unit) {
 
-    val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
-    val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
+   // val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
     val pause by waveformVM.pause.collectAsStateWithLifecycle(initialValue = 0F)
     val threshold by waveformVM.threshold.collectAsStateWithLifecycle(initialValue = 0F)
     val currentAudioIndex by waveformVM.currentAudioIndex.collectAsStateWithLifecycle(initialValue = 0)
@@ -85,6 +89,7 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
         }
 
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween) {
+
             HorizontalSlider(
                 modifier = Modifier,
                 threshold = threshold,
@@ -92,8 +97,8 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
                 onValueChangedFinished = { waveformVM.setUserIsDoneChangingSettings() })
 
             WaveformPageView(modifier = Modifier,
-                waveform = waveform,
-                sentences = sentences,
+                waveformVM = waveformVM,
+               // sentences = sentences,
                 updateSentence = { index, sentence -> waveformVM.setMark(index, sentence) },
                 dragStopped = { waveformVM.setUserIsDoneChangingSettings() }
             )
@@ -110,8 +115,11 @@ fun WaveformEditor(modifier: Modifier, waveformVM: WaveformEditorViewModel, onNa
 }
 
 @Composable
-fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
+fun WaveformPageView(modifier: Modifier, waveformVM: WaveformEditorViewModel,
+                     //sentences: List<SentenceAudio>,
+                     updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
     //Log.d("EDR", "Item: ${waveform.data.size}")
+        val waveform by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
         var maxScale = 1f
         var width = 1f
         var scale by remember { mutableStateOf(1f) }
@@ -121,6 +129,7 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
             offsetX = max(min(offsetX + offsetChange.x, 0f), -(waveform.size ?: 0) * scale + width)
            // Log.d("EDR", "scale $scale offset $offsetX")
         }
+        val color = if (waveform.isLoading) Color.Gray else Color.Green
         BoxWithConstraints(
             modifier = modifier
                 .clipToBounds()
@@ -138,13 +147,14 @@ fun WaveformPageView(modifier: Modifier, waveform: Waveform, sentences: List<Sen
             width = constraints.maxWidth.toFloat()
             maxScale = constraints.maxWidth / (waveform.size ?: 0).toFloat()
             scale = maxScale
-           // Log.d("EDR", "minscale $maxScale width ${constraints.maxWidth}")
+            Log.d("EDR", "minscale $maxScale width ${constraints.maxWidth}")
 
+            val waveform_ by waveformVM.waveform.collectAsStateWithLifecycle(initialValue = Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), size = 0, isLoading = true))
+            val sentences by waveformVM.sentences.collectAsStateWithLifecycle(initialValue = emptyList())
 
-            val color = if (waveform.isLoading) Color.Gray else Color.Green
             WaveformCanvas(
                 modifier = Modifier,
-                waveform = waveform.data,
+                waveform = waveform_.data,
                 color = color
             )
             SentenceMarkerCanvas(

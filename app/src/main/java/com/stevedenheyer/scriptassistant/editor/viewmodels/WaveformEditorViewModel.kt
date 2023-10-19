@@ -1,5 +1,6 @@
 package com.stevedenheyer.scriptassistant.editor.viewmodels
 
+import android.util.Log
 import android.util.Range
 import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.editor.domain.model.EditorEvent
@@ -68,6 +69,7 @@ class WaveformEditorViewModel @Inject constructor(
         }
 
     val waveform = combine(currentAudioId, getWaveformMapFlow()) { id, map ->
+        Log.d("WFMVM", "New waveform triggered")
         val waveform =
             map[id] ?: Waveform(id = 0, data = emptyArray<Byte>().toByteArray(), 0, isLoading = true)
         waveform

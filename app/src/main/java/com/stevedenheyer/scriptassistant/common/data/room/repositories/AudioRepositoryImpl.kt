@@ -22,7 +22,7 @@ class AudioRepositoryImpl @Inject constructor(private val audioFilesDao: AudioFi
 
     override fun getProjectWithAudio(id: Long) = audioFilesDao.getProjectWithAudioById(id)
 
-    override suspend fun updateAudio(audioDB: AudioFileDB?) = audioFilesDao.updateAudio(audioDB)
+    override suspend fun updateAudio(audioDB: AudioFileDB) = audioFilesDao.updateAudio(audioDB)
 
     override suspend fun insertAudioDetails(audioDetailsDB: AudioDetailsDB) = audioDetailsDao.insertAudioDetails(audioDetailsDB)
 

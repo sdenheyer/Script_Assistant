@@ -38,8 +38,6 @@ fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, upda
         0
     }
 
-    val painterIn = key(R.drawable.ic_baseline_mark_in_24) { painterResource(id = R.drawable.ic_baseline_mark_in_24) }
-    val painterOut = key(R.drawable.ic_baseline_mark_out_24) { painterResource(id = R.drawable.ic_baseline_mark_out_24) }
     BoxWithConstraints(
         modifier = modifier
             .width(width.dp)

@@ -30,5 +30,5 @@ interface AudioFileDao {
     suspend fun projectAndAudio() : List<ProjectAudiofilesCrossRef>
 
     @Update
-    suspend fun updateAudio(audioDB: AudioFileDB?)
+    suspend fun updateAudio(audioDB: AudioFileDB)
 }

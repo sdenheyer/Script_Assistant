@@ -18,7 +18,7 @@ interface AudioRepository {
 
     //suspend fun getProjectAndAudio() : AudioAggregate
 
-    suspend fun updateAudio(audioDB: AudioFileDB?)
+    suspend fun updateAudio(audioDB: AudioFileDB)
 
     suspend fun insertAudioDetails(audioDetailsDB: AudioDetailsDB)
 
