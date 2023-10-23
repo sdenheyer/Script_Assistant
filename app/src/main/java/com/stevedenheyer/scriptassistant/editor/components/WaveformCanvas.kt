@@ -29,7 +29,7 @@ fun WaveformCanvas(modifier: Modifier, waveform: ByteArray, color: Color) {
             onDrawBehind {
                 waveformFloats.forEachIndexed { index, byte ->
                     val x = index.toFloat() / 2
-                                drawLine(
+                    drawLine(
                                     start = Offset(x = x, y = centerY),
                                     end = Offset(x = x, y = byte),
                                     color = color

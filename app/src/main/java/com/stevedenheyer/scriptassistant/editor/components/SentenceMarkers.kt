@@ -4,10 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.stevedenheyer.scriptassistant.R
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import android.util.Range
 import androidx.compose.foundation.gestures.Orientation
@@ -15,32 +13,23 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.roundToInt
 
-
+/*
 @Composable
-fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
-    val width = try {
-        sentences.last().waveformRange.upper + 2
-    } catch (e: NoSuchElementException) {
-        0
-    }
+fun SentenceMarkers(modifier: Modifier, sentences:() -> List<SentenceAudio>, updateSentence: (Int, SentenceAudio) -> Unit, dragStopped: () -> Unit) {
 
     BoxWithConstraints(
         modifier = modifier
-            .width(width.dp)
             .fillMaxHeight(),
         propagateMinConstraints = true) {
 
@@ -50,7 +39,7 @@ fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, upda
         val markOut = remember {
             MarkOut(minHeight)
         }
-        sentences.forEachIndexed { index, sentence ->
+        sentences().forEachIndexed { index, sentence ->
                 Marker(modifier = Modifier,
                     painter = markIn,
                     horizontalOffset = sentence.waveformRange.lower ,
@@ -64,6 +53,7 @@ fun SentenceMarkerCanvas(modifier: Modifier, sentences:List<SentenceAudio>, upda
         }
     }
 }
+
 
 class MarkIn (val heightInDp: Dp) :Painter() {
     var height: Float = heightInDp.value
@@ -136,6 +126,7 @@ fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: 
        // contentScale = ContentScale.FillBounds
     )
 }
+*/
 
 
 /*@Composable
@@ -157,6 +148,7 @@ fun MarkOut(modifier: Modifier, horizontalOffset: Int, onDrag: (Int) -> Unit, dr
         onDrag = onDrag,
         dragStopped = dragStopped)
 }*/
+/*
 
 @Preview
 @Composable
@@ -167,7 +159,7 @@ fun SentenceMarkerPreview() {
     Box(modifier = Modifier
         .fillMaxWidth()
         .height(100.dp)) {
-        SentenceMarkerCanvas(modifier = Modifier.fillMaxSize(), sentences = sentences,
+        SentenceMarkers(modifier = Modifier.fillMaxSize(), sentences = sentences,
             updateSentence = { index, sentence ->
                 _sentences.update { sentences ->
                     sentences
@@ -175,4 +167,4 @@ fun SentenceMarkerPreview() {
         },
             dragStopped = {})
     }
-}
+}*/
