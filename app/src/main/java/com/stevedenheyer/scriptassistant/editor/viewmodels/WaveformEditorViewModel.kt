@@ -13,7 +13,7 @@ import com.stevedenheyer.scriptassistant.editor.domain.usecases.GetWaveformMapFl
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateAudioDetails
 import com.stevedenheyer.scriptassistant.editor.domain.usecases.UpdateProject
 import com.stevedenheyer.scriptassistant.common.data.sentances.FindSentences
-import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.StartingSettings
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 import com.stevedenheyer.scriptassistant.utils.EventHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,7 +49,7 @@ class WaveformEditorViewModel @Inject constructor(
         details[id]
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val settingsMap = HashMap<Long, Settings>()
+    private val startingSettingsMap = HashMap<Long, StartingSettings>()
 
     //val sentencesMap = LinkedHashMap<Long, List<SentenceAudio>>()
 
@@ -84,6 +84,12 @@ class WaveformEditorViewModel @Inject constructor(
 
     private val _pause = MutableStateFlow(0F)
     val pause = _pause.asStateFlow()
+
+    private val _offsetX = MutableStateFlow(0F)
+    val offsetX = _offsetX.asStateFlow()
+
+    private val _scaleX = MutableStateFlow(0F)
+    val scaleX = _scaleX.asStateFlow()
 
     private val userIsChangingSettings = MutableStateFlow(false)
 
@@ -142,7 +148,7 @@ class WaveformEditorViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            settingsMap.putAll(getSettings(projectId).first())
+            startingSettingsMap.putAll(getSettings(projectId).first())
             refreshSliders()
         }
 
@@ -211,8 +217,8 @@ class WaveformEditorViewModel @Inject constructor(
         userIsChangingSettings.value = true
         _threshold.value = value
         val id = currentAudioId.value
-        if ((value >= 0) && settingsMap.containsKey(id)) {
-            settingsMap[id] = settingsMap[id]!!.copy(threshold = value)
+        if ((value >= 0) && startingSettingsMap.containsKey(id)) {
+            startingSettingsMap[id] = startingSettingsMap[id]!!.copy(thresholdSlider = value)
             //refreshSliders()
         }
     }
@@ -221,8 +227,8 @@ class WaveformEditorViewModel @Inject constructor(
         userIsChangingSettings.value = true
         _pause.value = value
         val id = currentAudioId.value
-        if ((value >= 0) && settingsMap.containsKey(id)) {
-            settingsMap[id] = settingsMap[id]!!.copy(pause = value)
+        if ((value >= 0) && startingSettingsMap.containsKey(id)) {
+            startingSettingsMap[id] = startingSettingsMap[id]!!.copy(pauseSlider = value)
             //refreshSliders()
         }
     }
@@ -233,9 +239,11 @@ class WaveformEditorViewModel @Inject constructor(
         sentenceInsertFlow.value = null
         viewModelScope.launch {
             val details = audioDetailsFlow.value?.copy(
-                settings = Settings(
-                    threshold = threshold.value,
-                    pause = pause.value,
+                startingSettings = StartingSettings(
+                    thresholdSlider = threshold.value,
+                    pauseSlider = pause.value,
+                    viewOffsetX = offsetX.value,
+                    viewScaleX = scaleX.value
                 ), sentences = sentences.value.toTypedArray()
             )
             if (details != null) {
@@ -252,8 +260,8 @@ class WaveformEditorViewModel @Inject constructor(
 
     private fun refreshSliders() {
         val id = currentAudioId.value
-        _threshold.value = settingsMap[id]?.threshold ?: 0F
-        _pause.value = settingsMap[id]?.pause ?: 0F
+        _threshold.value = startingSettingsMap[id]?.thresholdSlider ?: 0F
+        _pause.value = startingSettingsMap[id]?.pauseSlider ?: 0F
     }
 
 }

@@ -3,7 +3,7 @@ package com.stevedenheyer.scriptassistant.data
 import androidx.room.*
 import com.stevedenheyer.scriptassistant.common.data.room.model.SentenceDB
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
-import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.StartingSettings
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
 import kotlin.math.roundToInt
 
@@ -13,6 +13,8 @@ data class AudioDetailsDB(
     var audioOwnerId: Long,
     var threshold: Int = 0,
     var pause: Int = 0,
+    var offsetX: Float = 0f,
+    var scaleX:Float = 1f,
     var sentenceDBS: Array<SentenceDB> = emptyArray(),
     @PrimaryKey(autoGenerate = true) var id: Long = 0,
 ) {
@@ -21,8 +23,10 @@ data class AudioDetailsDB(
             AudioDetailsDB(
                 projectId,
                 details.audioOwnerId,
-                details.settings.threshold.roundToInt(),
-                details.settings.pause.roundToInt(),
+                details.startingSettings.thresholdSlider.roundToInt(),
+                details.startingSettings.pauseSlider.roundToInt(),
+                details.startingSettings.viewOffsetX,
+                details.startingSettings.viewScaleX,
                 details.sentences.map {
                     SentenceDB.fromDomain(it)
                 }.toTypedArray(),
@@ -30,7 +34,7 @@ data class AudioDetailsDB(
             )
     }
 
-    fun toDomainSettings() = Settings(threshold.toFloat(), pause.toFloat())
+    fun toDomainSettings() = StartingSettings(threshold.toFloat(), pause.toFloat(), offsetX, scaleX)
 
     fun toDomainSentences(): Array<SentenceAudio> {
         return sentenceDBS.map {

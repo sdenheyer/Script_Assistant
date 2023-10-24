@@ -4,7 +4,7 @@ import androidx.room.Embedded
 import androidx.room.Junction
 import androidx.room.Relation
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.AudioDetails
-import com.stevedenheyer.scriptassistant.common.domain.model.audio.Settings
+import com.stevedenheyer.scriptassistant.common.domain.model.audio.StartingSettings
 import com.stevedenheyer.scriptassistant.data.AudioDetailsDB
 import com.stevedenheyer.scriptassistant.data.AudioFileDB
 import com.stevedenheyer.scriptassistant.data.ProjectAudiofilesCrossRef
@@ -44,7 +44,7 @@ data class AudioAggregateDB(
                         audioOwnerId = it.audioId,
                         name = name,
                         audioFile = File(it.audioFilePath),
-                        settings = Settings(0F, 0F),
+                        startingSettings = StartingSettings(0F, 0F, 0F, 1F),
                         sentences = emptyArray(),
                     )
                 )
@@ -55,7 +55,7 @@ data class AudioAggregateDB(
                         audioOwnerId = it.audioId,
                         name = name,
                         audioFile = File(it.audioFilePath),
-                        settings = audioDetailsDBS[position].toDomainSettings(),
+                        startingSettings = audioDetailsDBS[position].toDomainSettings(),
                         sentences = audioDetailsDBS[position].toDomainSentences(),
                     )
                 )
