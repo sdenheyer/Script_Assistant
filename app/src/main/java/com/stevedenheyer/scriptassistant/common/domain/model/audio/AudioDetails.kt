@@ -7,6 +7,6 @@ data class AudioDetails (
     val audioOwnerId: Long,  //TODO: Eliminate & re-factor
     val name: String,
     val audioFile: File,
-    val settings: Settings,
+    val startingSettings: StartingSettings,
     val sentences: Array<SentenceAudio>,
         )
