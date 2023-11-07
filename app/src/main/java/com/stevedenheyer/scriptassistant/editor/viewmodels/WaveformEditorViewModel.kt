@@ -135,7 +135,7 @@ class WaveformEditorViewModel @Inject constructor(
             //sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
         newSentenceList
-    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.flowOn(Dispatchers.Default).conflate()
 
     val sentenceInsertFlow = MutableStateFlow<Pair<Int, SentenceAudio>?>(null)
 
@@ -145,7 +145,7 @@ class WaveformEditorViewModel @Inject constructor(
             newSentenceList[insert.first] = insert.second.copy(isLocked = true)
         }
         newSentenceList
-    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         viewModelScope.launch {
