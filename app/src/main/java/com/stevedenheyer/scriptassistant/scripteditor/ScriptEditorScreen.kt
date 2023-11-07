@@ -17,10 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun ScriptEditorScreen(scriptEditorVM: ScriptEditorViewModel) {
+fun ScriptEditorScreen(scriptEditorVM: ScriptEditorViewModel = hiltViewModel()) {
     val editLine by scriptEditorVM.lineEditor.collectAsStateWithLifecycle(initialValue = "")
     val scriptLines by scriptEditorVM.scriptLines.collectAsStateWithLifecycle()
     Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier) {

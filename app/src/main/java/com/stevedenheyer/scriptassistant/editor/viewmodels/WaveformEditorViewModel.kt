@@ -2,6 +2,7 @@ package com.stevedenheyer.scriptassistant.editor.viewmodels
 
 import android.util.Log
 import android.util.Range
+import androidx.compose.foundation.gestures.TransformableState
 import androidx.lifecycle.*
 import com.stevedenheyer.scriptassistant.editor.domain.model.EditorEvent
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
@@ -98,7 +99,7 @@ class WaveformEditorViewModel @Inject constructor(
     private val eventFlow = eventHandler.getEventFlow()
 
     private val generatedRanges =
-        combineTransform(threshold, pause, userIsChangingSettings) { threshold, pause, userIsChanging ->
+        combineTransform(_threshold, _pause, userIsChangingSettings) { threshold, pause, userIsChanging ->
             if (!waveform.value.isLoading && userIsChangingSettings.value) {
                 val ranges = ArrayList<Range<Int>>()
                 val findSentences = FindSentences(currentCoroutineContext().job)
@@ -111,7 +112,7 @@ class WaveformEditorViewModel @Inject constructor(
                 )
                 emit(ranges)
             }
-        }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        }.flowOn(Dispatchers.Default).conflate()   //.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val sentenceList = combine(
         sentencesFromDB,
@@ -134,7 +135,7 @@ class WaveformEditorViewModel @Inject constructor(
             //sentencesMap[id] = newSentenceList
             // Log.d("WUVM", "Found ${newSentenceList.size}")
         newSentenceList
-    }.flowOn(Dispatchers.IO).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val sentenceInsertFlow = MutableStateFlow<Pair<Int, SentenceAudio>?>(null)
 

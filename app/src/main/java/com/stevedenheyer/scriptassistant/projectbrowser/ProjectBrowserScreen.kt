@@ -23,12 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.common.components.ChooseNameDialog
 import com.stevedenheyer.scriptassistant.common.domain.model.project.Project
 
 @Composable
-fun ProjectBrowserScreen(viewModel: ProjectBrowserViewModel, navigateToAudioEditor: (id: Long) -> Unit) {
+fun ProjectBrowserScreen(navigateToAudioEditor: (id: Long) -> Unit,
+                         viewModel:ProjectBrowserViewModel = hiltViewModel()) {
     val projectList:List<Project> by viewModel.projectList.collectAsStateWithLifecycle()
     val selectedProject:Long by viewModel.selectedProject.observeAsState(-1)
 

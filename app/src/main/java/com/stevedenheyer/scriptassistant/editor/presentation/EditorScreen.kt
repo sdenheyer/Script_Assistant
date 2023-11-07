@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.stevedenheyer.scriptassistant.editor.components.WaveformCanvas
 import com.stevedenheyer.scriptassistant.editor.viewmodels.ScriptLineItemView
@@ -31,16 +32,17 @@ import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformRecyclerViewM
 import com.stevedenheyer.scriptassistant.editor.viewmodels.WaveformEditorViewModel
 import com.stevedenheyer.scriptassistant.common.components.Draggable
 import com.stevedenheyer.scriptassistant.common.components.DropTarget
+import com.stevedenheyer.scriptassistant.editor.components.drawWaveform
 import com.stevedenheyer.scriptassistant.editor.viewmodels.ProjectViewModel
 
 @Composable
 fun AudioEditorScreen(
-    projectVM: ProjectViewModel,
-    waveformRecyclerVM: WaveformRecyclerViewModel,
-    waveformEditorVM: WaveformEditorViewModel,
-    scriptVM: ScriptViewmodel,
     onNavigateToImport: () -> Unit,
-    onNavigateToScriptEditor: () -> Unit
+    onNavigateToScriptEditor: () -> Unit,
+    projectVM: ProjectViewModel = hiltViewModel(),
+    waveformRecyclerVM: WaveformRecyclerViewModel = hiltViewModel(),
+    waveformEditorVM: WaveformEditorViewModel = hiltViewModel(),
+    scriptVM: ScriptViewmodel = hiltViewModel(),
 ) {
     BoxWithConstraints(modifier = Modifier) {
 
@@ -93,14 +95,17 @@ fun WaveformRecycler(modifier: Modifier, waveformVM: WaveformRecyclerViewModel) 
                 }
 
                 Box(modifier = Modifier
+                    .height(90.dp)
+                    .drawWaveform(item.waveform, Color.Gray)
                     .horizontalScroll(rememberScrollState())
-                    .background(bgColor)) {
+                    .background(bgColor)
+                    ) {
                     Text(text = item.text)
-                    WaveformCanvas(
-                        modifier = Modifier.height(90.dp),
-                        waveform = item.waveform,
-                        color = Color.Gray
-                    )
+//                    WaveformCanvas(
+//                        modifier = Modifier.height(90.dp),
+//                        waveform = item.waveform,
+//                        color = Color.Gray
+//                    )
                 }
 
             }

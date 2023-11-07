@@ -68,8 +68,7 @@ class MainActivity : AppCompatActivity() {
             startDestination = startDestination
         ) {
             composable("projectBrowser") {
-                val viewModel = hiltViewModel<ProjectBrowserViewModel>()
-                ProjectBrowserScreen(viewModel = viewModel, navigateToAudioEditor = { projectId ->
+                ProjectBrowserScreen(navigateToAudioEditor = { projectId ->
                     scope.launch {
                         val scriptId = getProjectWithScript(projectId).script.scriptId
                         val destination =
@@ -78,44 +77,41 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
             }
-                navigation(
-                    startDestination = "audioEditorMain",
-                    route = "audioEditor/{projectId}/{scriptId}",
-                    arguments = listOf(navArgument("projectId") { type = NavType.LongType},
-                                        navArgument("scriptId") { type = NavType.LongType}
-                    )
-                ) {
+            navigation(
+                startDestination = "audioEditorMain",
+                route = "audioEditor/{projectId}/{scriptId}",
+                arguments = listOf(navArgument("projectId") { type = NavType.LongType },
+                    navArgument("scriptId") { type = NavType.LongType }
+                )
+            ) {
 
-                    composable(
-                        "audioEditorMain",
-                    ) { backStackEntry ->
-                        val projectId = backStackEntry.arguments?.getLong("projectId")
-                        val scriptId = backStackEntry.arguments?.getLong("scriptId")
-                        val waveformGeneratorVM = hiltViewModel<ProjectViewModel>()
-                        val waveformRecyclerVM = hiltViewModel<WaveformRecyclerViewModel>()
-                        val waveformUniverseVM = hiltViewModel<WaveformEditorViewModel>()
-                        val scriptVM = hiltViewModel<ScriptViewmodel>()
+                composable(
+                    "audioEditorMain",
+                ) { backStackEntry ->
+                    val projectId = backStackEntry.arguments?.getLong("projectId")
+                    val scriptId = backStackEntry.arguments?.getLong("scriptId")
 
-                        AudioEditorScreen(projectVM = waveformGeneratorVM,
-                            waveformRecyclerVM = waveformRecyclerVM,
-                            waveformEditorVM = waveformUniverseVM,
-                            scriptVM = scriptVM,
-                            onNavigateToImport = {
-                                val destination = "fileBrowser/" + projectId.toString()
-                                navController.navigate(destination)
-                            },
-                            onNavigateToScriptEditor = {
-                                val destination = "scriptEditor/" + scriptId.toString()
-                                navController.navigate(destination)
-                            })
+                    AudioEditorScreen(
+                        onNavigateToImport = {
+                            val destination = "fileBrowser/" + projectId.toString()
+                            navController.navigate(destination)
+                        },
+                        onNavigateToScriptEditor = {
+                            val destination = "scriptEditor/" + scriptId.toString()
+                            navController.navigate(destination)
+                        })
 
 
-                    }
+                }
 
-                    composable("fileBrowser/{projectId}", arguments = listOf(navArgument("projectId") { type = NavType.LongType})) { backStackEntry ->
-                        val projectId = backStackEntry.arguments?.getLong("projectId")
-                        FileBrowserScreen(startingDir = Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS),
+                composable(
+                    "fileBrowser/{projectId}",
+                    arguments = listOf(navArgument("projectId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val projectId = backStackEntry.arguments?.getLong("projectId")
+                    FileBrowserScreen(startingDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOWNLOADS
+                    ),
                         onFileSelected = { file ->
                             scope.launch {
                                 createNewAudioData(projectId!!, file.absolutePath)
@@ -123,13 +119,15 @@ class MainActivity : AppCompatActivity() {
                             }
                         })
 
-                    }
-
-                    composable("scriptEditor/{scriptId}", arguments = listOf(navArgument("scriptId") {type = NavType.LongType})) { backStackEntry ->
-                        val scriptVM = hiltViewModel<ScriptEditorViewModel>()
-                        ScriptEditorScreen(scriptVM)
-                    }
                 }
+
+                composable(
+                    "scriptEditor/{scriptId}",
+                    arguments = listOf(navArgument("scriptId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    ScriptEditorScreen()
+                }
+            }
         }
     }
 }

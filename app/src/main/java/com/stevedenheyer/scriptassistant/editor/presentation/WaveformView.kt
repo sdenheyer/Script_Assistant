@@ -35,28 +35,36 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import com.stevedenheyer.scriptassistant.common.domain.model.audio.SentenceAudio
+import com.stevedenheyer.scriptassistant.editor.components.drawWaveform
 import com.stevedenheyer.scriptassistant.editor.domain.model.Waveform
 import kotlin.math.roundToInt
 
 @Composable
-fun WaveformView(modifier: Modifier,
-                 waveform: () -> Waveform,
-                 sentences: () -> List<SentenceAudio>,
-                 updateSentence: (Int, SentenceAudio) -> Unit,
-                 dragStopped: () -> Unit
-                 ) {
+fun WaveformView(
+    modifier: Modifier,
+    waveform: () -> Waveform,
+    sentences: () -> List<SentenceAudio>,
+    updateSentence: (Int, SentenceAudio) -> Unit,
+    dragStopped: () -> Unit
+) {
+    var scale by remember { mutableStateOf(1f) }
 
     BoxWithConstraints(
-        modifier = modifier.fillMaxSize().clipToBounds(),
+        modifier = modifier
+            .fillMaxSize()
+            .clipToBounds(),
         propagateMinConstraints = true
     ) {
 
-        val widthDp = LocalDensity.current.run { (waveform().size ?: 1).toDp() }
+        val widthDp = LocalDensity.current.run { (waveform().size ?: constraints.minWidth).toDp() }
         val width = constraints.minWidth.toFloat()
-        val maxScale = width / (waveform().size ?: 1).toFloat()
+        val maxScale = width / widthDp.value
+        //scale = maxScale
 
-        var scale by remember { mutableStateOf(1f) }
-        Log.d("WFMV", "Markers recompose width: $widthDp window: $width scale: $maxScale size: $scale")
+        Log.d(
+            "WFMV",
+            "Markers recompose width: $widthDp window: $width maxscale: $maxScale scale: $scale"
+        )
         var offsetX by remember { mutableStateOf(0f) }
         val state = rememberTransformableState { scaleChange, offsetChange, _ ->
             scale = java.lang.Float.max(scaleChange * scale, maxScale)
@@ -74,41 +82,49 @@ fun WaveformView(modifier: Modifier,
             MarkOut(maxHeight)
         }
 
-        Box(modifier = Modifier.graphicsLayer {
-            transformOrigin = TransformOrigin(0f, 0f)
-            scaleX = scale
-            translationX = offsetX
-        }
+        Box(modifier = Modifier
+            .width(widthDp)
+            .fillMaxHeight()
+            .graphicsLayer {
+                transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = scale
+                translationX = offsetX
+            }
             .transformable(state = state)
             // .offset { IntOffset(offsetX.roundToInt(), 0) }
 
-            ) {
-            Box(modifier = Modifier
-                .width(widthDp)
-                .fillMaxHeight()
-                .drawWithCache {
-                    Log.d("WFMV", "Waveform recached")
-                    scale = maxScale
-                    val height = size.height / 2
-                    val centerY = size.center.y
+     /*   ) {
+            Box(
+                modifier = Modifier*/
+                    .drawWaveform(
+                        waveform = waveform().data,
+                        color = if (waveform().isLoading) Color.Gray else Color.Green
+                    )
+            )
 
-                    val waveformFloats = waveform().data.map { byte ->
-                        centerY + (byte * height / 128F)
-                    }
+            /* .drawWithCache {
+                 Log.d("WFMV", "Waveform recached")
+                 scale = maxScale
+                 val height = size.height / 2
+                 val centerY = size.center.y
 
-                    onDrawBehind {
-                        Log.d("WFMV", "Waveform redraw")
-                        waveformFloats.forEachIndexed { index, byte ->
-                            val x = index.toFloat() / 2
-                            drawLine(
-                                start = Offset(x = x, y = centerY),
-                                end = Offset(x = x, y = byte),
-                                color = if (waveform().isLoading) Color.Gray else Color.Green
-                            )
-                        }
-                    }
+                 val waveformFloats = waveform().data.map { byte ->
+                     centerY + (byte * height / 128F)
+                 }
 
-                }
+                 onDrawBehind {
+                     Log.d("WFMV", "Waveform redraw")
+                     waveformFloats.forEachIndexed { index, byte ->
+                         val x = index.toFloat() / 2
+                         drawLine(
+                             start = Offset(x = x, y = centerY),
+                             end = Offset(x = x, y = byte),
+                             color = if (waveform().isLoading) Color.Gray else Color.Green
+                         )
+                     }
+                 }*/
+
+            //   }
 
             /*    .graphicsLayer {
                     transformOrigin = TransformOrigin(0f, 0f)
@@ -117,7 +133,8 @@ fun WaveformView(modifier: Modifier,
                 }*/
 
 
-            ) {
+            // )
+            {
                 sentences().forEachIndexed { index, sentence ->
                     Marker(
                         modifier = Modifier,
@@ -147,9 +164,9 @@ fun WaveformView(modifier: Modifier,
             }
         }
     }
-}
+//}
 
-class MarkIn (val heightInDp: Dp) : Painter() {
+class MarkIn(val heightInDp: Dp) : Painter() {
     var height: Float = heightInDp.value
     override val intrinsicSize: Size
         get() = Size(12f, height)
@@ -177,30 +194,42 @@ class MarkIn (val heightInDp: Dp) : Painter() {
     }
 }
 
-class MarkOut (val heightInDp: Dp) : Painter() {
+class MarkOut(val heightInDp: Dp) : Painter() {
     var height: Float = heightInDp.value
     override val intrinsicSize: Size
         get() = Size(12f, height)
+
     override fun DrawScope.onDraw() {
         height = heightInDp.toPx()
-        drawLine(start = Offset(12f, height),
+        drawLine(
+            start = Offset(12f, height),
             end = Offset(12f, 0f),
             color = Color.Black,
             strokeWidth = 6f
         )
-        drawLine(start = Offset(0f, 0f),
+        drawLine(
+            start = Offset(0f, 0f),
             end = Offset(12F, 0f),
             color = Color.Black,
-            strokeWidth = 6f)
-        drawLine(start = Offset(0f, height),
+            strokeWidth = 6f
+        )
+        drawLine(
+            start = Offset(0f, height),
             end = Offset(12F, height),
             color = Color.Black,
-            strokeWidth = 6f)
+            strokeWidth = 6f
+        )
     }
 }
 
 @Composable
-fun Marker(modifier: Modifier, painter: Painter, horizontalOffset: Int, onDrag: (Int) -> Unit, dragStopped: () -> Unit) {
+fun Marker(
+    modifier: Modifier,
+    painter: Painter,
+    horizontalOffset: Int,
+    onDrag: (Int) -> Unit,
+    dragStopped: () -> Unit
+) {
     Image(
         painter = painter,
         contentDescription = "Marker",
